@@ -23,6 +23,10 @@ class User(Base):
     reset_token = Column(String(255), nullable=True)
     reset_token_expires = Column(DateTime(timezone=True), nullable=True)
 
+    # Magic link login
+    magic_link_token = Column(String(255), nullable=True)
+    magic_link_expires = Column(DateTime(timezone=True), nullable=True)
+
 
 class Session(Base):
     __tablename__ = "sessions"

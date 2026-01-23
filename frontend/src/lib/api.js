@@ -95,6 +95,27 @@ export async function confirmPasswordReset(token, newPassword) {
 	});
 }
 
+// Magic Link functions
+export async function requestMagicLink(email) {
+	return apiRequest('/api/auth/magic-link/request', {
+		method: 'POST',
+		body: JSON.stringify({ email })
+	});
+}
+
+export async function verifyMagicLink(token) {
+	const response = await apiRequest('/api/auth/magic-link/verify', {
+		method: 'POST',
+		body: JSON.stringify({ token })
+	});
+
+	if (response.access_token) {
+		auth.setUser(response.user, response.access_token);
+	}
+
+	return response;
+}
+
 export async function setup2FA() {
 	return apiRequest('/api/2fa/setup', { method: 'POST' });
 }

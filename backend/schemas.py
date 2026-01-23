@@ -51,6 +51,15 @@ class PasswordResetConfirm(BaseModel):
     new_password: str = Field(..., min_length=8)
 
 
+# Magic Link schemas
+class MagicLinkRequest(BaseModel):
+    email: EmailStr
+
+
+class MagicLinkVerify(BaseModel):
+    token: str
+
+
 # 2FA schemas
 class TwoFactorSetupResponse(BaseModel):
     secret: str

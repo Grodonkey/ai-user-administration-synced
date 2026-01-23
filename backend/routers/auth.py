@@ -13,7 +13,7 @@ from security import (
     get_current_user
 )
 from two_factor import verify_2fa_code
-from email_service import send_password_reset_email, send_welcome_email
+from email_service import send_password_reset_email, send_welcome_email, send_magic_link_email
 from config import settings
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
@@ -156,3 +156,75 @@ def password_reset_confirm(
     db.commit()
 
     return {"message": "Password has been reset successfully"}
+
+
+# Magic Link endpoints
+@router.post("/magic-link/request", response_model=schemas.MessageResponse)
+def request_magic_link(
+    request_data: schemas.MagicLinkRequest,
+    db: Session = Depends(get_db)
+):
+    """Request a magic link for passwordless login"""
+    user = db.query(models.User).filter(models.User.email == request_data.email).first()
+
+    if user and user.is_active:
+        magic_token = create_reset_token()  # Reuse token generation
+        user.magic_link_token = magic_token
+        user.magic_link_expires = datetime.utcnow() + timedelta(minutes=15)
+        db.commit()
+
+        send_magic_link_email(user.email, magic_token, user.full_name)
+
+    # Always return success to prevent email enumeration
+    return {"message": "Wenn die E-Mail existiert, wurde ein Login-Link gesendet"}
+
+
+@router.post("/magic-link/verify", response_model=schemas.LoginResponse)
+def verify_magic_link(
+    verify_data: schemas.MagicLinkVerify,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Verify magic link token and login user"""
+    user = db.query(models.User).filter(
+        models.User.magic_link_token == verify_data.token,
+        models.User.magic_link_expires > datetime.utcnow()
+    ).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=400,
+            detail="Ungültiger oder abgelaufener Login-Link"
+        )
+
+    if not user.is_active:
+        raise HTTPException(status_code=400, detail="Account ist deaktiviert")
+
+    # Clear the magic link token
+    user.magic_link_token = None
+    user.magic_link_expires = None
+
+    # Create access token
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": str(user.id)},
+        expires_delta=access_token_expires
+    )
+
+    # Create session
+    session_token = create_session_token()
+    session = models.Session(
+        user_id=user.id,
+        session_token=session_token,
+        expires_at=datetime.utcnow() + timedelta(days=7),
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent")
+    )
+    db.add(session)
+    db.commit()
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": user
+    }

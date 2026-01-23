@@ -122,11 +122,13 @@ backend/
 ### Authentifizierung
 
 - `POST /api/auth/register` - Registrierung
-- `POST /api/auth/login` - Login
+- `POST /api/auth/login` - Login (mit Passwort)
 - `POST /api/auth/logout` - Logout
 - `GET /api/auth/me` - Aktueller Benutzer
 - `POST /api/auth/password-reset-request` - Passwort-Reset anfordern
 - `POST /api/auth/password-reset-confirm` - Passwort zurücksetzen
+- `POST /api/auth/magic-link/request` - Magic Link anfordern (passwordless)
+- `POST /api/auth/magic-link/verify` - Magic Link verifizieren
 
 ### Benutzer
 
@@ -164,6 +166,8 @@ backend/
 - two_factor_secret: String (Optional)
 - reset_token: String (Optional)
 - reset_token_expires: DateTime (Optional)
+- magic_link_token: String (Optional)
+- magic_link_expires: DateTime (Optional)
 ```
 
 ### Session
@@ -236,6 +240,7 @@ FROM_EMAIL=noreply@yourdomain.com
 
 - **Welcome Email**: Bei Registrierung
 - **Password Reset**: Mit Reset-Link
+- **Magic Link**: Passwordless Login-Link
 - **Account Activated**: Admin-Benachrichtigung
 - **Account Deactivated**: Admin-Benachrichtigung
 - **Test Emails**: Für Admin-Tests
@@ -262,10 +267,96 @@ pytest
 
 ### Datenbank-Migrationen (Alembic)
 
+Alembic verwaltet Datenbankschema-Änderungen. Die Konfiguration befindet sich in:
+- `alembic.ini` - Hauptkonfiguration
+- `alembic/env.py` - Umgebungskonfiguration (lädt DATABASE_URL aus settings)
+- `alembic/versions/` - Migrationsdateien
+
+#### Befehle
+
 ```bash
-alembic init alembic
-alembic revision --autogenerate -m "Initial migration"
+# Migration ausführen (alle ausstehenden)
 alembic upgrade head
+
+# Neue Migration erstellen (nach Model-Änderung)
+alembic revision --autogenerate -m "beschreibung der änderung"
+
+# Migrationen anzeigen
+alembic history
+
+# Aktuelle Version anzeigen
+alembic current
+
+# Eine Migration zurückrollen
+alembic downgrade -1
+
+# Zu spezifischer Version migrieren
+alembic upgrade <revision_id>
+```
+
+#### Neue Migration erstellen
+
+1. **Model ändern** in `models.py`:
+```python
+class User(Base):
+    # Neue Spalte hinzufügen
+    new_field = Column(String(255), nullable=True)
+```
+
+2. **Migration generieren**:
+```bash
+alembic revision --autogenerate -m "add new_field to users"
+```
+
+3. **Migration prüfen** in `alembic/versions/`:
+```python
+def upgrade():
+    op.add_column('users', sa.Column('new_field', sa.String(255), nullable=True))
+
+def downgrade():
+    op.drop_column('users', 'new_field')
+```
+
+4. **Migration ausführen**:
+```bash
+alembic upgrade head
+```
+
+#### Wichtige Regeln für Live-Datenbanken
+
+- **Neue Spalten**: Immer `nullable=True` oder mit Default-Wert
+- **Spalten löschen**: In separater Migration, nachdem Code angepasst wurde
+- **Spalten umbenennen**: Neue Spalte erstellen → Daten kopieren → Alte löschen (3 Migrationen)
+- **Backups**: Vor jeder Migration in Produktion
+- **Testen**: Migrationen zuerst lokal oder auf Staging testen
+
+#### Railway Deployment
+
+Der `Procfile` führt Migrationen automatisch vor dem App-Start aus:
+
+```
+web: alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}
+```
+
+#### Manuelle Migration (ohne autogenerate)
+
+```bash
+alembic revision -m "custom migration"
+```
+
+Dann die `upgrade()` und `downgrade()` Funktionen manuell schreiben:
+
+```python
+from alembic import op
+import sqlalchemy as sa
+
+def upgrade():
+    op.add_column('users', sa.Column('magic_link_token', sa.String(255), nullable=True))
+    op.add_column('users', sa.Column('magic_link_expires', sa.DateTime(timezone=True), nullable=True))
+
+def downgrade():
+    op.drop_column('users', 'magic_link_expires')
+    op.drop_column('users', 'magic_link_token')
 ```
 
 ### Code-Qualität

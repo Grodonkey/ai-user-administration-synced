@@ -59,6 +59,60 @@ def send_password_reset_email(email: str, reset_token: str, user_name: str = Non
         return False
 
 
+def send_magic_link_email(email: str, magic_token: str, user_name: str = None):
+    magic_url = f"{settings.FRONTEND_URL}/auth/magic-link?token={magic_token}"
+
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+            .button {{
+                display: inline-block;
+                padding: 12px 24px;
+                background-color: #007bff;
+                color: white;
+                text-decoration: none;
+                border-radius: 4px;
+                margin: 20px 0;
+            }}
+            .footer {{ margin-top: 30px; font-size: 12px; color: #666; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h2>Login-Link</h2>
+            <p>Hallo{f" {user_name}" if user_name else ""},</p>
+            <p>Klicke auf den folgenden Button, um dich einzuloggen:</p>
+            <a href="{magic_url}" class="button">Jetzt einloggen</a>
+            <p>Oder kopiere diesen Link in deinen Browser:</p>
+            <p style="word-break: break-all;">{magic_url}</p>
+            <p>Dieser Link ist 15 Minuten lang gültig.</p>
+            <p>Wenn du diesen Link nicht angefordert hast, kannst du diese E-Mail ignorieren.</p>
+            <div class="footer">
+                <p>Diese E-Mail wurde automatisch generiert. Bitte antworte nicht darauf.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+    try:
+        params = {
+            "from": settings.FROM_EMAIL,
+            "to": [email],
+            "subject": "Dein Login-Link",
+            "html": html_content,
+        }
+        resend.Emails.send(params)
+        return True
+    except Exception as e:
+        print(f"Error sending email: {e}")
+        return False
+
+
 def send_welcome_email(email: str, user_name: str = None):
     html_content = f"""
     <!DOCTYPE html>
