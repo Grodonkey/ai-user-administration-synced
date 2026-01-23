@@ -81,6 +81,31 @@ async def get_current_admin_user(
     return current_user
 
 
+async def get_current_user_optional(
+    request: Request,
+    db: Session = Depends(get_db)
+) -> Optional[models.User]:
+    """Get current user if authenticated, otherwise return None."""
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return None
+
+    try:
+        token = auth_header.split(" ")[1]
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        user_id: int = payload.get("sub")
+        if user_id is None:
+            return None
+    except JWTError:
+        return None
+
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if user is None or not user.is_active:
+        return None
+
+    return user
+
+
 def validate_session(db: Session, session_token: str) -> Optional[models.User]:
     session = db.query(models.Session).filter(
         models.Session.session_token == session_token,

@@ -177,3 +177,46 @@ export function isAdmin() {
 	const user = getStoredUser();
 	return user?.is_admin || false;
 }
+
+// Project functions
+export async function suggestSlug(title) {
+	return apiRequest(`/api/projects/suggest-slug?title=${encodeURIComponent(title)}`);
+}
+
+export async function createProject(data) {
+	return apiRequest('/api/projects', {
+		method: 'POST',
+		body: JSON.stringify(data)
+	});
+}
+
+export async function listProjects(status = null, skip = 0, limit = 20) {
+	let url = `/api/projects?skip=${skip}&limit=${limit}`;
+	if (status) {
+		url += `&status=${status}`;
+	}
+	return apiRequest(url);
+}
+
+export async function listMyProjects() {
+	return apiRequest('/api/projects/my-projects');
+}
+
+export async function getProject(slug) {
+	return apiRequest(`/api/projects/${slug}`);
+}
+
+export async function updateProject(slug, data) {
+	return apiRequest(`/api/projects/${slug}`, {
+		method: 'PUT',
+		body: JSON.stringify(data)
+	});
+}
+
+export async function deleteProject(slug) {
+	return apiRequest(`/api/projects/${slug}`, { method: 'DELETE' });
+}
+
+export async function submitProject(slug) {
+	return apiRequest(`/api/projects/${slug}/submit`, { method: 'POST' });
+}

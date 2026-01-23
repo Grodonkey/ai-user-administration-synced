@@ -1,5 +1,6 @@
-from sqlalchemy import Boolean, Column, Integer, String, DateTime, Text
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, Text, ForeignKey, Numeric
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 from database import Base
 
 
@@ -26,6 +27,45 @@ class User(Base):
     # Magic link login
     magic_link_token = Column(String(255), nullable=True)
     magic_link_expires = Column(DateTime(timezone=True), nullable=True)
+
+    # Project starter role
+    is_starter = Column(Boolean, default=False)
+
+    # Relationship to projects
+    projects = relationship("Project", back_populates="owner")
+
+
+class Project(Base):
+    __tablename__ = "projects"
+
+    id = Column(Integer, primary_key=True, index=True)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    title = Column(String(255), nullable=False)
+    slug = Column(String(255), unique=True, index=True, nullable=False)
+    description = Column(Text, nullable=True)
+    short_description = Column(String(500), nullable=True)
+
+    # Funding details
+    funding_goal = Column(Numeric(12, 2), nullable=True)
+    funding_current = Column(Numeric(12, 2), default=0)
+
+    # Status: draft, submitted, verified, financing, ended_success, ended_failed
+    status = Column(String(50), default="draft")
+
+    # Dates
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    submitted_at = Column(DateTime(timezone=True), nullable=True)
+    verified_at = Column(DateTime(timezone=True), nullable=True)
+    financing_start = Column(DateTime(timezone=True), nullable=True)
+    financing_end = Column(DateTime(timezone=True), nullable=True)
+
+    # Media
+    image_url = Column(String(500), nullable=True)
+    video_url = Column(String(500), nullable=True)
+
+    # Relationship
+    owner = relationship("User", back_populates="projects")
 
 
 class Session(Base):

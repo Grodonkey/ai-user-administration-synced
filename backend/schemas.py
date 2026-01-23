@@ -22,6 +22,7 @@ class UserResponse(UserBase):
     id: int
     is_active: bool
     is_admin: bool
+    is_starter: bool = False
     two_factor_enabled: bool
     created_at: datetime
 
@@ -90,3 +91,74 @@ class TestEmailRequest(BaseModel):
 # Generic response
 class MessageResponse(BaseModel):
     message: str
+
+
+# Project schemas
+class ProjectBase(BaseModel):
+    title: str = Field(..., min_length=1, max_length=255)
+    slug: str = Field(..., min_length=1, max_length=255)
+    description: Optional[str] = None
+    short_description: Optional[str] = Field(None, max_length=500)
+    funding_goal: Optional[float] = None
+    image_url: Optional[str] = None
+    video_url: Optional[str] = None
+
+
+class ProjectCreate(ProjectBase):
+    pass
+
+
+class ProjectUpdate(BaseModel):
+    title: Optional[str] = Field(None, min_length=1, max_length=255)
+    slug: Optional[str] = Field(None, min_length=1, max_length=255)
+    description: Optional[str] = None
+    short_description: Optional[str] = Field(None, max_length=500)
+    funding_goal: Optional[float] = None
+    image_url: Optional[str] = None
+    video_url: Optional[str] = None
+
+
+class ProjectOwner(BaseModel):
+    id: int
+    full_name: Optional[str] = None
+    email: EmailStr
+
+    class Config:
+        from_attributes = True
+
+
+class ProjectResponse(ProjectBase):
+    id: int
+    owner_id: int
+    status: str
+    funding_current: float
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    submitted_at: Optional[datetime] = None
+    verified_at: Optional[datetime] = None
+    financing_start: Optional[datetime] = None
+    financing_end: Optional[datetime] = None
+    owner: Optional[ProjectOwner] = None
+
+    class Config:
+        from_attributes = True
+
+
+class ProjectListResponse(BaseModel):
+    id: int
+    title: str
+    slug: str
+    short_description: Optional[str] = None
+    status: str
+    funding_goal: Optional[float] = None
+    funding_current: float
+    image_url: Optional[str] = None
+    created_at: datetime
+    owner: Optional[ProjectOwner] = None
+
+    class Config:
+        from_attributes = True
+
+
+class SlugSuggestion(BaseModel):
+    slug: str

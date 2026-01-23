@@ -1,7 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { getCurrentUser, updateProfile, setup2FA, verify2FA, disable2FA, isAuthenticated } from '$lib/api';
+	import { getCurrentUser, updateProfile, setup2FA, verify2FA, disable2FA, isAuthenticated, listMyProjects } from '$lib/api';
 	import { t } from '$lib/stores/language';
 
 	let user = null;
@@ -18,6 +18,9 @@
 	let twoFactorVerifyCode = '';
 	let show2FASetup = false;
 
+	let projects = [];
+	let projectsLoading = true;
+
 	onMount(async () => {
 		if (!isAuthenticated()) {
 			goto('/login');
@@ -33,7 +36,28 @@
 		} finally {
 			loading = false;
 		}
+
+		// Load user's projects
+		try {
+			projects = await listMyProjects();
+		} catch (err) {
+			console.log('Could not load projects:', err.message);
+		} finally {
+			projectsLoading = false;
+		}
 	});
+
+	function getStatusColor(status) {
+		switch (status) {
+			case 'draft': return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+			case 'submitted': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+			case 'verified': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
+			case 'financing': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+			case 'ended_success': return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400';
+			case 'ended_failed': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+			default: return 'bg-gray-100 text-gray-800';
+		}
+	}
 
 	async function handleUpdateProfile() {
 		error = '';
@@ -200,6 +224,55 @@
 					{$t('profile.updateProfile')}
 				</button>
 			</form>
+		</div>
+
+		<!-- My Projects Section -->
+		<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+			<div class="flex justify-between items-center mb-4">
+				<h2 class="text-xl font-semibold text-gray-800 dark:text-white">{$t('project.myProjects')}</h2>
+				<a
+					href="/projects/new"
+					class="inline-flex items-center px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+				>
+					<svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+					</svg>
+					{$t('project.create')}
+				</a>
+			</div>
+
+			{#if projectsLoading}
+				<p class="text-gray-600 dark:text-gray-400">{$t('common.loading')}</p>
+			{:else if projects.length === 0}
+				<div class="text-center py-8">
+					<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+					</svg>
+					<p class="mt-4 text-gray-600 dark:text-gray-400">{$t('project.noProjects')}</p>
+					<p class="text-sm text-gray-500 dark:text-gray-500">{$t('project.startFirst')}</p>
+				</div>
+			{:else}
+				<div class="space-y-3">
+					{#each projects as project}
+						<a
+							href="/projects/{project.slug}"
+							class="block p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+						>
+							<div class="flex justify-between items-start">
+								<div>
+									<h3 class="font-medium text-gray-900 dark:text-white">{project.title}</h3>
+									{#if project.short_description}
+										<p class="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-1">{project.short_description}</p>
+									{/if}
+								</div>
+								<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {getStatusColor(project.status)}">
+									{$t(`project.status.${project.status}`)}
+								</span>
+							</div>
+						</a>
+					{/each}
+				</div>
+			{/if}
 		</div>
 
 		<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">

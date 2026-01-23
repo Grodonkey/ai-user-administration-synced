@@ -1,5 +1,6 @@
 <script>
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import { login, requestMagicLink } from '$lib/api';
 	import { t } from '$lib/stores/language';
 
@@ -11,6 +12,9 @@
 	let loading = false;
 	let needs2FA = false;
 	let loginMethod = 'magic'; // 'magic' or 'password'
+
+	// Get redirect URL from query params
+	$: redirectUrl = $page.url.searchParams.get('redirect') || '/profile';
 
 	async function handleMagicLink() {
 		error = '';
@@ -34,7 +38,7 @@
 
 		try {
 			await login(email, password, needs2FA ? twoFactorCode : null);
-			goto('/profile');
+			goto(redirectUrl);
 		} catch (err) {
 			if (err.message.includes('Two-factor authentication code required')) {
 				needs2FA = true;
