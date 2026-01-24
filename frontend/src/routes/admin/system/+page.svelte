@@ -1,7 +1,5 @@
 <script>
-	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
-	import { sendTestEmail, isAuthenticated, isAdmin } from '$lib/api';
+	import { sendTestEmail } from '$lib/api';
 	import { t, language } from '$lib/stores/language';
 
 	let email = '';
@@ -18,18 +16,6 @@
 		{ value: 'account_activated', label: $t('admin.emailType.accountActivated') },
 		{ value: 'account_deactivated', label: $t('admin.emailType.accountDeactivated') }
 	];
-
-	onMount(() => {
-		if (!isAuthenticated()) {
-			goto('/login');
-			return;
-		}
-
-		if (!isAdmin()) {
-			goto('/profile');
-			return;
-		}
-	});
 
 	async function handleSendTestEmail() {
 		error = '';
@@ -49,12 +35,8 @@
 	}
 </script>
 
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-	<div class="mb-6">
-		<a href="/admin" class="text-blue-600 dark:text-blue-400 hover:underline">&larr; {$t('admin.backToAdmin')}</a>
-	</div>
-
-	<h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-8">{$t('admin.emailTest')}</h1>
+<div>
+	<h1 class="text-3xl font-bold text-[#304b50] dark:text-white mb-8">{$t('admin.system')}</h1>
 
 	{#if error}
 		<div class="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded mb-4">
@@ -68,8 +50,8 @@
 		</div>
 	{/if}
 
-	<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-		<h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">{$t('admin.sendTestEmailForm')}</h2>
+	<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
+		<h2 class="text-xl font-semibold text-[#304b50] dark:text-white mb-4">{$t('admin.emailTest')}</h2>
 
 		<form on:submit|preventDefault={handleSendTestEmail}>
 			<div class="mb-4">
@@ -77,7 +59,7 @@
 				<select
 					id="emailType"
 					bind:value={emailType}
-					class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+					class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-[#06E481] bg-white dark:bg-gray-700 text-[#304b50] dark:text-white"
 				>
 					{#each emailTypes as type}
 						<option value={type.value}>{type.label}</option>
@@ -95,7 +77,7 @@
 					bind:value={email}
 					required
 					placeholder="test@example.com"
-					class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+					class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-[#06E481] bg-white dark:bg-gray-700 text-[#304b50] dark:text-white"
 				/>
 			</div>
 
@@ -108,7 +90,7 @@
 					id="userName"
 					bind:value={userName}
 					placeholder={$language === 'de' ? 'Max Mustermann' : 'John Doe'}
-					class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+					class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-[#06E481] bg-white dark:bg-gray-700 text-[#304b50] dark:text-white"
 				/>
 				<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{$t('admin.nameHint')}</p>
 			</div>
@@ -116,15 +98,15 @@
 			<button
 				type="submit"
 				disabled={loading}
-				class="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+				class="bg-[#06E481] text-[#304b50] font-semibold py-2 px-6 rounded-md hover:bg-[#05b667] disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 			>
 				{loading ? $t('admin.sending') : $t('admin.sendTestEmail')}
 			</button>
 		</form>
 	</div>
 
-	<div class="mt-8 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
-		<h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-3">{$t('admin.availableEmailTypes')}</h3>
+	<div class="bg-[#06E481]/10 dark:bg-[#06E481]/10 border border-[#06E481]/30 dark:border-[#06E481]/30 rounded-lg p-6">
+		<h3 class="text-lg font-semibold text-[#304b50] dark:text-white mb-3">{$t('admin.availableEmailTypes')}</h3>
 
 		<div class="space-y-3">
 			<div>

@@ -46,6 +46,8 @@ export const translations = {
 
 		// Profile
 		'profile.title': 'Profil',
+		'profile.overview': 'Übersicht',
+		'profile.settings': 'Einstellungen',
 		'profile.personalInfo': 'Persönliche Informationen',
 		'profile.email': 'E-Mail',
 		'profile.fullName': 'Name',
@@ -80,8 +82,11 @@ export const translations = {
 
 		// Admin
 		'admin.title': 'Admin-Bereich',
+		'admin.projects': 'Projekte',
+		'admin.projectManagement': 'Projektverwaltung',
 		'admin.users': 'Benutzer',
 		'admin.userManagement': 'Benutzerverwaltung',
+		'admin.system': 'System',
 		'admin.totalUsers': 'Benutzer gesamt',
 		'admin.activeUsers': 'Aktive Benutzer',
 		'admin.adminUsers': 'Administratoren',
@@ -132,6 +137,14 @@ export const translations = {
 		'admin.emailType.accountDeactivated': 'Account deaktiviert',
 		'admin.emailType.accountDeactivatedDesc':
 			'Benachrichtigung, wenn ein Account deaktiviert wurde',
+		'admin.filterByStatus': 'Nach Status filtern',
+		'admin.allStatuses': 'Alle Status',
+		'admin.noProjects': 'Keine Projekte vorhanden',
+		'admin.projectStatusUpdated': 'Projektstatus aktualisiert',
+		'admin.confirmDeleteProject': 'Möchten Sie das Projekt "{title}" wirklich löschen?',
+		'admin.projectDeleted': 'Projekt gelöscht',
+		'admin.totalProjectCount': 'Gesamt: {count} Projekte',
+		'admin.view': 'Ansehen',
 
 		// Magic Link
 		'magicLink.verifying': 'Login wird verifiziert...',
@@ -203,7 +216,12 @@ export const translations = {
 		'project.submit': 'Zur Prüfung einreichen',
 		'project.submitting': 'Wird eingereicht...',
 		'project.delete': 'Projekt löschen',
+		'project.duplicate': 'Projekt duplizieren',
+		'project.actions': 'Aktionen',
 		'project.confirmDelete': 'Möchtest du dieses Projekt wirklich löschen?',
+		'project.confirmDeleteSlug': 'Gib zur Bestätigung {slug} ein.',
+		'project.enterSlug': 'Slug eingeben',
+		'project.confirmDuplicate': 'Möchtest du dieses Projekt wirklich duplizieren?',
 		'project.created': 'Projekt erfolgreich erstellt',
 		'project.updated': 'Projekt erfolgreich aktualisiert',
 		'project.submitted': 'Projekt zur Prüfung eingereicht',
@@ -222,9 +240,26 @@ export const translations = {
 		'project.status.financing': 'In Finanzierung',
 		'project.status.ended_success': 'Erfolgreich finanziert',
 		'project.status.ended_failed': 'Nicht finanziert',
+		'project.status.rejected': 'Abgelehnt',
+		'project.funding': 'Finanzierung',
 		'project.myProjects': 'Meine Projekte',
 		'project.noProjects': 'Du hast noch keine Projekte erstellt',
-		'project.startFirst': 'Starte jetzt dein erstes Projekt!'
+		'project.startFirst': 'Starte jetzt dein erstes Projekt!',
+		'project.titleRequired': 'Titel ist erforderlich',
+		'project.slugRequired': 'Slug ist erforderlich',
+		'project.authRequired': 'Anmeldung erforderlich',
+		'project.authRequiredDesc': 'Bitte melde dich an oder registriere dich, um dein Projekt zu erstellen.',
+		'project.owner': 'Ersteller',
+		'project.createdAt': 'Erstellt am',
+		'project.allProjects': 'Alle Projekte',
+		'project.changeStatus': 'Status ändern',
+		'project.verify': 'Verifizieren',
+		'project.startFinancing': 'Finanzierung starten',
+		'project.endSuccess': 'Als erfolgreich beenden',
+		'project.endFailed': 'Als gescheitert beenden',
+		'project.editModeOn': 'Bearbeiten',
+		'project.editModeOff': 'Fertig',
+		'project.notSet': 'Nicht gesetzt'
 	},
 
 	en: {
@@ -264,6 +299,8 @@ export const translations = {
 
 		// Profile
 		'profile.title': 'Profile',
+		'profile.overview': 'Overview',
+		'profile.settings': 'Settings',
 		'profile.personalInfo': 'Personal Information',
 		'profile.email': 'Email',
 		'profile.fullName': 'Name',
@@ -298,8 +335,11 @@ export const translations = {
 
 		// Admin
 		'admin.title': 'Admin Area',
+		'admin.projects': 'Projects',
+		'admin.projectManagement': 'Project Management',
 		'admin.users': 'Users',
 		'admin.userManagement': 'User Management',
+		'admin.system': 'System',
 		'admin.totalUsers': 'Total Users',
 		'admin.activeUsers': 'Active Users',
 		'admin.adminUsers': 'Administrators',
@@ -347,6 +387,14 @@ export const translations = {
 		'admin.emailType.accountActivatedDesc': 'Notification when an account is activated',
 		'admin.emailType.accountDeactivated': 'Account Deactivated',
 		'admin.emailType.accountDeactivatedDesc': 'Notification when an account is deactivated',
+		'admin.filterByStatus': 'Filter by status',
+		'admin.allStatuses': 'All statuses',
+		'admin.noProjects': 'No projects found',
+		'admin.projectStatusUpdated': 'Project status updated',
+		'admin.confirmDeleteProject': 'Do you really want to delete the project "{title}"?',
+		'admin.projectDeleted': 'Project deleted',
+		'admin.totalProjectCount': 'Total: {count} projects',
+		'admin.view': 'View',
 
 		// Magic Link
 		'magicLink.verifying': 'Verifying login...',
@@ -418,7 +466,12 @@ export const translations = {
 		'project.submit': 'Submit for Review',
 		'project.submitting': 'Submitting...',
 		'project.delete': 'Delete Project',
+		'project.duplicate': 'Duplicate Project',
+		'project.actions': 'Actions',
 		'project.confirmDelete': 'Do you really want to delete this project?',
+		'project.confirmDeleteSlug': 'Enter {slug} to confirm.',
+		'project.enterSlug': 'Enter slug',
+		'project.confirmDuplicate': 'Do you really want to duplicate this project?',
 		'project.created': 'Project created successfully',
 		'project.updated': 'Project updated successfully',
 		'project.submitted': 'Project submitted for review',
@@ -437,8 +490,25 @@ export const translations = {
 		'project.status.financing': 'Financing',
 		'project.status.ended_success': 'Successfully Funded',
 		'project.status.ended_failed': 'Not Funded',
+		'project.status.rejected': 'Rejected',
+		'project.funding': 'Funding',
 		'project.myProjects': 'My Projects',
 		'project.noProjects': "You haven't created any projects yet",
-		'project.startFirst': 'Start your first project now!'
+		'project.startFirst': 'Start your first project now!',
+		'project.titleRequired': 'Title is required',
+		'project.slugRequired': 'Slug is required',
+		'project.authRequired': 'Authentication Required',
+		'project.authRequiredDesc': 'Please log in or register to create your project.',
+		'project.owner': 'Owner',
+		'project.createdAt': 'Created at',
+		'project.allProjects': 'All Projects',
+		'project.changeStatus': 'Change Status',
+		'project.verify': 'Verify',
+		'project.startFinancing': 'Start Financing',
+		'project.endSuccess': 'End as Successful',
+		'project.endFailed': 'End as Failed',
+		'project.editModeOn': 'Edit',
+		'project.editModeOff': 'Done',
+		'project.notSet': 'Not set'
 	}
 };

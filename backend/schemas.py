@@ -162,3 +162,32 @@ class ProjectListResponse(BaseModel):
 
 class SlugSuggestion(BaseModel):
     slug: str
+
+
+# Admin Project schemas
+class AdminProjectUpdate(BaseModel):
+    title: Optional[str] = Field(None, min_length=1, max_length=255)
+    slug: Optional[str] = Field(None, min_length=1, max_length=255)
+    description: Optional[str] = None
+    short_description: Optional[str] = Field(None, max_length=500)
+    funding_goal: Optional[float] = None
+    image_url: Optional[str] = None
+    video_url: Optional[str] = None
+    status: Optional[str] = Field(None, description="Status: draft, submitted, verified, financing, ended_success, ended_failed, rejected")
+
+
+class AdminProjectResponse(ProjectBase):
+    id: int
+    owner_id: int
+    status: str
+    funding_current: float
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    submitted_at: Optional[datetime] = None
+    verified_at: Optional[datetime] = None
+    financing_start: Optional[datetime] = None
+    financing_end: Optional[datetime] = None
+    owner: Optional[ProjectOwner] = None
+
+    class Config:
+        from_attributes = True

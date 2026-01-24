@@ -3,7 +3,10 @@
 	import { goto } from '$app/navigation';
 	import { t } from '$lib/stores/language';
 	import { auth } from '$lib/stores/auth';
-	import { suggestSlug, createProject } from '$lib/api';
+	import { suggestSlug, createProject, login } from '$lib/api';
+	import AuthForm from '$lib/components/AuthForm.svelte';
+
+	const STORAGE_KEY = 'pendingProject';
 
 	let title = '';
 	let slug = '';
@@ -18,9 +21,59 @@
 	let error = null;
 	let slugLoading = false;
 
-	onMount(() => {
-		if (!$auth.isAuthenticated) {
-			goto('/login?redirect=/projects/new');
+	// Auth modal state
+	let showAuthModal = false;
+	let authMode = 'magic';
+
+	// Save form data to localStorage
+	function saveFormData() {
+		const data = {
+			title,
+			slug,
+			slugEdited,
+			shortDescription,
+			description,
+			fundingGoal,
+			imageUrl,
+			videoUrl
+		};
+		localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+	}
+
+	// Load form data from localStorage
+	function loadFormData() {
+		const saved = localStorage.getItem(STORAGE_KEY);
+		if (saved) {
+			try {
+				const data = JSON.parse(saved);
+				title = data.title || '';
+				slug = data.slug || '';
+				slugEdited = data.slugEdited || false;
+				shortDescription = data.shortDescription || '';
+				description = data.description || '';
+				fundingGoal = data.fundingGoal || '';
+				imageUrl = data.imageUrl || '';
+				videoUrl = data.videoUrl || '';
+				return true;
+			} catch (e) {
+				console.error('Failed to load saved form data:', e);
+			}
+		}
+		return false;
+	}
+
+	// Clear saved form data
+	function clearFormData() {
+		localStorage.removeItem(STORAGE_KEY);
+	}
+
+	// On mount, check if we have saved data and user is now logged in
+	onMount(async () => {
+		const hasSavedData = loadFormData();
+
+		// If user is authenticated and has saved data, auto-submit
+		if ($auth.isAuthenticated && hasSavedData && title.trim() && slug.trim()) {
+			await submitProject();
 		}
 	});
 
@@ -54,16 +107,29 @@
 		error = null;
 
 		if (!title.trim()) {
-			error = 'Title is required';
+			error = $t('project.titleRequired');
 			return;
 		}
 
 		if (!slug.trim()) {
-			error = 'Slug is required';
+			error = $t('project.slugRequired');
 			return;
 		}
 
+		// Check if user is authenticated
+		if (!$auth.isAuthenticated) {
+			// Save form data before showing auth modal
+			saveFormData();
+			showAuthModal = true;
+			return;
+		}
+
+		await submitProject();
+	}
+
+	async function submitProject() {
 		loading = true;
+		error = null;
 
 		try {
 			const projectData = {
@@ -77,6 +143,8 @@
 			};
 
 			const project = await createProject(projectData);
+			// Clear saved form data after successful creation
+			clearFormData();
 			goto(`/projects/${project.slug}`);
 		} catch (e) {
 			error = e.message;
@@ -84,11 +152,38 @@
 			loading = false;
 		}
 	}
+
+	function handleLoginSuccess() {
+		showAuthModal = false;
+		// Now submit the project
+		submitProject();
+	}
+
+	async function handleRegisterSuccess(event) {
+		// Auto-login after registration and submit
+		// The AuthForm dispatches this after successful registration
+		// We need to log in the user first
+		showAuthModal = false;
+		submitProject();
+	}
+
+	function handleBeforeMagicLink() {
+		// Save form data before sending magic link (user will leave page)
+		saveFormData();
+	}
+
+	function handleModeChange(event) {
+		authMode = event.detail.mode;
+	}
+
+	function closeAuthModal() {
+		showAuthModal = false;
+	}
 </script>
 
 <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 	<div class="mb-8">
-		<a href="/" class="text-blue-600 dark:text-blue-400 hover:underline flex items-center">
+		<a href="/" class="text-[#304b50] dark:text-[#06E481] hover:underline flex items-center">
 			<svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
 			</svg>
@@ -97,7 +192,7 @@
 	</div>
 
 	<div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-		<h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+		<h1 class="text-2xl font-bold text-[#304b50] dark:text-white mb-6">
 			{$t('project.create')}
 		</h1>
 
@@ -119,7 +214,7 @@
 					bind:value={title}
 					on:input={handleTitleChange}
 					placeholder={$t('project.titlePlaceholder')}
-					class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+					class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-[#06E481] focus:border-[#06E481] dark:bg-gray-700 dark:text-white"
 					required
 				/>
 			</div>
@@ -135,12 +230,12 @@
 						id="slug"
 						bind:value={slug}
 						on:input={handleSlugEdit}
-						class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+						class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-[#06E481] focus:border-[#06E481] dark:bg-gray-700 dark:text-white"
 						required
 					/>
 					{#if slugLoading}
 						<div class="absolute right-3 top-1/2 -translate-y-1/2">
-							<div class="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-blue-600"></div>
+							<div class="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-[#06E481]"></div>
 						</div>
 					{/if}
 				</div>
@@ -160,7 +255,7 @@
 					rows="2"
 					maxlength="500"
 					placeholder={$t('project.shortDescriptionPlaceholder')}
-					class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+					class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-[#06E481] focus:border-[#06E481] dark:bg-gray-700 dark:text-white"
 				></textarea>
 				<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
 					{shortDescription.length}/500
@@ -177,7 +272,7 @@
 					bind:value={description}
 					rows="6"
 					placeholder={$t('project.descriptionPlaceholder')}
-					class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+					class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-[#06E481] focus:border-[#06E481] dark:bg-gray-700 dark:text-white"
 				></textarea>
 			</div>
 
@@ -193,7 +288,7 @@
 					min="0"
 					step="1"
 					placeholder={$t('project.fundingGoalPlaceholder')}
-					class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+					class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-[#06E481] focus:border-[#06E481] dark:bg-gray-700 dark:text-white"
 				/>
 			</div>
 
@@ -207,7 +302,7 @@
 					id="imageUrl"
 					bind:value={imageUrl}
 					placeholder="https://..."
-					class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+					class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-[#06E481] focus:border-[#06E481] dark:bg-gray-700 dark:text-white"
 				/>
 			</div>
 
@@ -221,7 +316,7 @@
 					id="videoUrl"
 					bind:value={videoUrl}
 					placeholder="https://..."
-					class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+					class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-[#06E481] focus:border-[#06E481] dark:bg-gray-700 dark:text-white"
 				/>
 			</div>
 
@@ -230,7 +325,7 @@
 				<button
 					type="submit"
 					disabled={loading}
-					class="w-full px-4 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+					class="w-full px-4 py-3 bg-[#06E481] text-[#304b50] font-semibold font-medium rounded-md hover:bg-[#05b667] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#06E481] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
 				>
 					{loading ? $t('project.creating') : $t('project.create')}
 				</button>
@@ -238,3 +333,32 @@
 		</form>
 	</div>
 </div>
+
+<!-- Auth Modal -->
+{#if showAuthModal}
+	<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+		<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
+			<div class="flex justify-between items-center mb-6">
+				<h2 class="text-2xl font-bold text-[#304b50] dark:text-white">
+					{authMode === 'register' ? $t('register.title') : $t('login.title')}
+				</h2>
+				<button
+					on:click={closeAuthModal}
+					class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+				>
+					<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+					</svg>
+				</button>
+			</div>
+
+			<AuthForm
+				bind:mode={authMode}
+				on:loginsuccess={handleLoginSuccess}
+				on:registersuccess={handleRegisterSuccess}
+				on:beforemagiclink={handleBeforeMagicLink}
+				on:modechange={handleModeChange}
+			/>
+		</div>
+	</div>
+{/if}

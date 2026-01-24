@@ -1,5 +1,5 @@
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from database import get_db
 import models
@@ -118,3 +118,75 @@ def send_test_email_endpoint(
         )
 
     return {"message": f"Test email '{test_email_data.email_type}' sent successfully to {test_email_data.email}"}
+
+
+# Admin Project Management Endpoints
+@router.get("/projects", response_model=List[schemas.AdminProjectResponse])
+def list_all_projects(
+    status: Optional[str] = Query(None, description="Filter by status"),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
+    current_admin: models.User = Depends(get_current_admin_user),
+    db: Session = Depends(get_db)
+):
+    """List all projects (including drafts and submitted) for admin."""
+    query = db.query(models.Project)
+
+    if status:
+        query = query.filter(models.Project.status == status)
+
+    projects = query.order_by(models.Project.created_at.desc()).offset(skip).limit(limit).all()
+    return projects
+
+
+@router.get("/projects/{project_id}", response_model=schemas.AdminProjectResponse)
+def get_project_admin(
+    project_id: int,
+    current_admin: models.User = Depends(get_current_admin_user),
+    db: Session = Depends(get_db)
+):
+    """Get a project by ID for admin."""
+    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return project
+
+
+@router.patch("/projects/{project_id}", response_model=schemas.AdminProjectResponse)
+def update_project_admin(
+    project_id: int,
+    project_update: schemas.AdminProjectUpdate,
+    current_admin: models.User = Depends(get_current_admin_user),
+    db: Session = Depends(get_db)
+):
+    """Update a project as admin (can change status)."""
+    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    update_data = project_update.model_dump(exclude_unset=True)
+
+    for field, value in update_data.items():
+        setattr(project, field, value)
+
+    db.commit()
+    db.refresh(project)
+
+    return project
+
+
+@router.delete("/projects/{project_id}", response_model=schemas.MessageResponse)
+def delete_project_admin(
+    project_id: int,
+    current_admin: models.User = Depends(get_current_admin_user),
+    db: Session = Depends(get_db)
+):
+    """Delete a project as admin."""
+    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    db.delete(project)
+    db.commit()
+
+    return {"message": "Project deleted successfully"}

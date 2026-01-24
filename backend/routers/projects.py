@@ -137,9 +137,9 @@ def get_project(
             detail="Project not found"
         )
 
-    # Draft projects are only visible to owner
+    # Draft projects are only visible to owner and admins
     if project.status == "draft":
-        if not current_user or current_user.id != project.owner_id:
+        if not current_user or (current_user.id != project.owner_id and not current_user.is_admin):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Project not found"
@@ -163,7 +163,7 @@ def update_project(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Update a project (only owner can update, only draft/submitted status)."""
+    """Update a project (owner or admin can update, only draft/submitted status for non-admins)."""
     project = db.query(models.Project).filter(models.Project.slug == slug).first()
 
     if not project:
@@ -172,13 +172,18 @@ def update_project(
             detail="Project not found"
         )
 
-    if project.owner_id != current_user.id:
+    # Check authorization: owner or admin
+    is_owner = project.owner_id == current_user.id
+    is_admin = current_user.is_admin
+
+    if not is_owner and not is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to update this project"
         )
 
-    if project.status not in ["draft", "submitted"]:
+    # Non-admins can only update draft/submitted projects
+    if not is_admin and project.status not in ["draft", "submitted"]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot update project after verification"
@@ -276,3 +281,48 @@ def submit_project(
     db.refresh(project)
 
     return project
+
+
+@router.post("/{slug}/duplicate", response_model=schemas.ProjectResponse, status_code=status.HTTP_201_CREATED)
+def duplicate_project(
+    slug: str,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Duplicate a project. Creates a new draft copy owned by the current user."""
+    project = db.query(models.Project).filter(models.Project.slug == slug).first()
+
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found"
+        )
+
+    # Only owner or admin can duplicate
+    if project.owner_id != current_user.id and not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to duplicate this project"
+        )
+
+    # Generate unique slug for the duplicate
+    base_slug = f"{project.slug}-copy"
+    unique_slug = ensure_unique_slug(db, base_slug)
+
+    # Create duplicate project
+    duplicate = models.Project(
+        owner_id=current_user.id,
+        title=f"{project.title} (Copy)",
+        slug=unique_slug,
+        description=project.description,
+        short_description=project.short_description,
+        funding_goal=project.funding_goal,
+        image_url=project.image_url,
+        video_url=project.video_url,
+        status="draft"
+    )
+    db.add(duplicate)
+    db.commit()
+    db.refresh(duplicate)
+
+    return duplicate

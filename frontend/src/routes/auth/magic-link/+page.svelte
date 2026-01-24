@@ -20,9 +20,14 @@
 		try {
 			await verifyMagicLink(token);
 			status = 'success';
-			// Redirect to profile after short delay
+
+			// Check if there's a pending project to create
+			const pendingProject = localStorage.getItem('pendingProject');
+			const redirectTo = pendingProject ? '/projects/new' : '/profile';
+
+			// Redirect after short delay
 			setTimeout(() => {
-				goto('/profile');
+				goto(redirectTo);
 			}, 1500);
 		} catch (err) {
 			status = 'error';
@@ -36,7 +41,7 @@
 		{#if status === 'verifying'}
 			<div class="mb-4">
 				<svg
-					class="animate-spin h-12 w-12 text-blue-600 dark:text-blue-400 mx-auto"
+					class="animate-spin h-12 w-12 text-[#304b50] dark:text-[#06E481] mx-auto"
 					xmlns="http://www.w3.org/2000/svg"
 					fill="none"
 					viewBox="0 0 24 24"
@@ -56,7 +61,7 @@
 					></path>
 				</svg>
 			</div>
-			<h2 class="text-xl font-semibold text-gray-800 dark:text-white">{$t('magicLink.verifying')}</h2>
+			<h2 class="text-xl font-semibold text-[#304b50] dark:text-white">{$t('magicLink.verifying')}</h2>
 			<p class="text-gray-600 dark:text-gray-400 mt-2">{$t('magicLink.pleaseWait')}</p>
 		{:else if status === 'success'}
 			<div class="mb-4">
@@ -98,7 +103,7 @@
 			<p class="text-gray-600 dark:text-gray-400 mt-2">{error}</p>
 			<a
 				href="/login"
-				class="inline-block mt-6 bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 transition-colors"
+				class="inline-block mt-6 bg-[#06E481] text-[#304b50] font-semibold py-2 px-6 rounded-md hover:bg-[#05b667] transition-colors"
 			>
 				{$t('magicLink.backToLogin')}
 			</a>

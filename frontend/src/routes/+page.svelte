@@ -36,15 +36,15 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 	<!-- Hero Section -->
 	<div class="text-center mb-16">
-		<h1 class="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+		<h1 class="text-4xl sm:text-5xl font-bold text-[#304b50] dark:text-white mb-6">
 			{$t('home.title')}
 		</h1>
 		<p class="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
 			{$t('home.subtitle')}
 		</p>
 		<a
-			href={$auth.isAuthenticated ? '/projects/new' : '/login?redirect=/projects/new'}
-			class="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+			href="/projects/new"
+			class="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-lg shadow-sm text-[#304b50] font-semibold bg-[#06E481] hover:bg-[#05b667] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#06E481] transition-colors"
 		>
 			{$t('home.cta')}
 			<svg class="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -56,11 +56,11 @@
 	<!-- Featured Projects Section -->
 	<div class="mb-12">
 		<div class="flex justify-between items-center mb-8">
-			<h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+			<h2 class="text-2xl font-bold text-[#304b50] dark:text-white">
 				{$t('home.featuredProjects')}
 			</h2>
 			{#if projects.length > 0}
-				<a href="/projects" class="text-blue-600 dark:text-blue-400 hover:underline">
+				<a href="/projects" class="text-[#304b50] dark:text-[#06E481] hover:underline">
 					{$t('home.viewAll')} &rarr;
 				</a>
 			{/if}
@@ -68,7 +68,7 @@
 
 		{#if loading}
 			<div class="text-center py-12">
-				<div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-blue-600"></div>
+				<div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-[#06E481]"></div>
 				<p class="mt-4 text-gray-600 dark:text-gray-400">{$t('common.loading')}</p>
 			</div>
 		{:else if projects.length === 0}
@@ -92,14 +92,14 @@
 								class="w-full h-48 object-cover"
 							/>
 						{:else}
-							<div class="w-full h-48 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+							<div class="w-full h-48 bg-gradient-to-br from-[#304b50] to-[#06E481] flex items-center justify-center">
 								<svg class="h-16 w-16 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
 								</svg>
 							</div>
 						{/if}
 						<div class="p-4">
-							<h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+							<h3 class="text-lg font-semibold text-[#304b50] dark:text-white mb-2">
 								{project.title}
 							</h3>
 							{#if project.short_description}
@@ -115,7 +115,7 @@
 									</div>
 									<div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
 										<div
-											class="bg-blue-600 h-2 rounded-full transition-all"
+											class="bg-[#06E481] h-2 rounded-full transition-all"
 											style="width: {calculateProgress(project.funding_current, project.funding_goal)}%"
 										></div>
 									</div>

@@ -25,7 +25,7 @@
 
 <div class="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-12">
 	<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
-		<h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-6">{$t('passwordReset.title')}</h2>
+		<h2 class="text-2xl font-bold text-[#304b50] dark:text-white mb-6">{$t('passwordReset.title')}</h2>
 
 		{#if error}
 			<div class="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded mb-4">
@@ -50,14 +50,14 @@
 						id="email"
 						bind:value={email}
 						required
-						class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+						class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-[#06E481] bg-white dark:bg-gray-700 text-[#304b50] dark:text-white"
 					/>
 				</div>
 
 				<button
 					type="submit"
 					disabled={loading}
-					class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+					class="w-full bg-[#06E481] text-[#304b50] font-semibold py-2 px-4 rounded-md hover:bg-[#05b667] disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 				>
 					{loading ? $t('passwordReset.requesting') : $t('passwordReset.sendLink')}
 				</button>
@@ -65,7 +65,7 @@
 		{/if}
 
 		<div class="mt-6 text-center">
-			<a href="/login" class="text-blue-600 dark:text-blue-400 hover:underline">{$t('passwordReset.backToLogin')}</a>
+			<a href="/login" class="text-[#304b50] dark:text-[#06E481] hover:underline">{$t('passwordReset.backToLogin')}</a>
 		</div>
 	</div>
 </div>

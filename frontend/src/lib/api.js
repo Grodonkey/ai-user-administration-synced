@@ -28,6 +28,11 @@ export async function apiRequest(endpoint, options = {}) {
 		throw new Error(error.detail || 'An error occurred');
 	}
 
+	// Handle 204 No Content responses
+	if (response.status === 204) {
+		return null;
+	}
+
 	return response.json();
 }
 
@@ -219,4 +224,32 @@ export async function deleteProject(slug) {
 
 export async function submitProject(slug) {
 	return apiRequest(`/api/projects/${slug}/submit`, { method: 'POST' });
+}
+
+export async function duplicateProject(slug) {
+	return apiRequest(`/api/projects/${slug}/duplicate`, { method: 'POST' });
+}
+
+// Admin Project functions
+export async function adminListProjects(status = null, skip = 0, limit = 100) {
+	let url = `/api/admin/projects?skip=${skip}&limit=${limit}`;
+	if (status) {
+		url += `&status=${status}`;
+	}
+	return apiRequest(url);
+}
+
+export async function adminGetProject(projectId) {
+	return apiRequest(`/api/admin/projects/${projectId}`);
+}
+
+export async function adminUpdateProject(projectId, data) {
+	return apiRequest(`/api/admin/projects/${projectId}`, {
+		method: 'PATCH',
+		body: JSON.stringify(data)
+	});
+}
+
+export async function adminDeleteProject(projectId) {
+	return apiRequest(`/api/admin/projects/${projectId}`, { method: 'DELETE' });
 }
