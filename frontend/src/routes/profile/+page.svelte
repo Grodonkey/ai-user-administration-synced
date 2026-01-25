@@ -3,7 +3,10 @@
 	import { goto } from '$app/navigation';
 	import { getCurrentUser, updateProfile, setup2FA, verify2FA, disable2FA, isAuthenticated, listMyProjects, logout } from '$lib/api';
 	import { t } from '$lib/stores/language';
-	import { getStatusColor } from '$lib/utils';
+	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import Alert from '$lib/components/Alert.svelte';
+	import Badge from '$lib/components/Badge.svelte';
+	import EmptyState from '$lib/components/EmptyState.svelte';
 
 	let user = null;
 	let loading = true;
@@ -127,7 +130,7 @@
 
 {#if loading}
 	<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-		<p class="text-center text-gray-600 dark:text-gray-400">{$t('common.loading')}</p>
+		<LoadingSpinner />
 	</div>
 {:else if user}
 	<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -155,17 +158,8 @@
 			</nav>
 		</div>
 
-		{#if error}
-			<div class="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded mb-4">
-				{error}
-			</div>
-		{/if}
-
-		{#if success}
-			<div class="bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-400 px-4 py-3 rounded mb-4">
-				{success}
-			</div>
-		{/if}
+		<Alert type="error" message={error} />
+		<Alert type="success" message={success} />
 
 		<!-- Overview Tab -->
 		{#if activeTab === 'overview'}
@@ -242,15 +236,11 @@
 				</div>
 
 				{#if projectsLoading}
-					<p class="text-gray-600 dark:text-gray-400">{$t('common.loading')}</p>
+					<LoadingSpinner size="sm" />
 				{:else if projects.length === 0}
-					<div class="text-center py-8">
-						<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-						</svg>
-						<p class="mt-4 text-gray-600 dark:text-gray-400">{$t('project.noProjects')}</p>
+					<EmptyState message={$t('project.noProjects')}>
 						<p class="text-sm text-gray-500 dark:text-gray-500">{$t('project.startFirst')}</p>
-					</div>
+					</EmptyState>
 				{:else}
 					<div class="space-y-3">
 						{#each projects as project}
@@ -265,9 +255,7 @@
 											<p class="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-1">{project.short_description}</p>
 										{/if}
 									</div>
-									<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {getStatusColor(project.status)}">
-										{$t(`project.status.${project.status}`)}
-									</span>
+									<Badge type="status" value={project.status} />
 								</div>
 							</a>
 						{/each}

@@ -9,6 +9,10 @@
 		getProjectTypeColor,
 		getSortIcon as baseSortIcon
 	} from '$lib/utils';
+	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import Alert from '$lib/components/Alert.svelte';
+	import Badge from '$lib/components/Badge.svelte';
+	import EmptyState from '$lib/components/EmptyState.svelte';
 
 	let projects = [];
 	let loading = true;
@@ -112,17 +116,8 @@
 <div>
 	<h1 class="text-3xl font-bold text-[#304b50] dark:text-white mb-8">{$t('admin.projectManagement')}</h1>
 
-	{#if error}
-		<div class="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded mb-4">
-			{error}
-		</div>
-	{/if}
-
-	{#if success}
-		<div class="bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-400 px-4 py-3 rounded mb-4">
-			{success}
-		</div>
-	{/if}
+	<Alert type="error" message={error} />
+	<Alert type="success" message={success} />
 
 	<!-- Filters -->
 	<div class="mb-6 flex flex-wrap gap-3 items-center">
@@ -150,12 +145,10 @@
 
 	{#if loading}
 		<div class="text-center py-12">
-			<p class="text-gray-600 dark:text-gray-400">{$t('common.loading')}</p>
+			<LoadingSpinner />
 		</div>
 	{:else if projects.length === 0}
-		<div class="text-center py-12 bg-gray-100 dark:bg-gray-800 rounded-lg">
-			<p class="text-gray-600 dark:text-gray-400">{$t('admin.noProjects')}</p>
-		</div>
+		<EmptyState message={$t('admin.noProjects')} />
 	{:else}
 		<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
 			<div class="overflow-x-auto">
@@ -223,9 +216,7 @@
 									{/if}
 								</td>
 								<td class="px-6 py-4 whitespace-nowrap">
-									<span class="text-xs px-2 py-1 rounded-full font-medium {getProjectTypeColor(project.project_type)}">
-										{$t(`project.type.${project.project_type || 'crowdfunding'}`)}
-									</span>
+									<Badge type="projectType" value={project.project_type || 'crowdfunding'} />
 								</td>
 								<td class="px-6 py-4 whitespace-nowrap">
 									<select

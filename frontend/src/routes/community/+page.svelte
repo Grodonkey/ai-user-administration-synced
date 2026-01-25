@@ -2,7 +2,11 @@
 	import { onMount } from 'svelte';
 	import { t } from '$lib/stores/language';
 	import { getAllStarters } from '$lib/api';
-	import { formatCurrency, getInitials, formatProjectCount } from '$lib/utils';
+	import { formatCurrency, formatProjectCount } from '$lib/utils';
+	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import Alert from '$lib/components/Alert.svelte';
+	import EmptyState from '$lib/components/EmptyState.svelte';
+	import Avatar from '$lib/components/Avatar.svelte';
 
 	let starters = [];
 	let loading = true;
@@ -31,30 +35,20 @@
 
 	{#if loading}
 		<div class="text-center py-12">
-			<div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-[#06E481]"></div>
-			<p class="mt-4 text-gray-600 dark:text-gray-400">{$t('common.loading')}</p>
+			<LoadingSpinner />
 		</div>
 	{:else if error}
-		<div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
-			{error}
-		</div>
+		<Alert type="error" message={error} />
 	{:else if starters.length === 0}
-		<div class="text-center py-12">
-			<svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-			</svg>
-			<p class="text-xl text-gray-500 dark:text-gray-400">{$t('community.noStarters')}</p>
-		</div>
+		<EmptyState icon="users" message={$t('community.noStarters')} />
 	{:else}
 		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
 			{#each starters as starter}
 				<a href="/profile/{starter.profile_slug}" class="group">
 					<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
 						<div class="flex items-center mb-4">
-							<div class="w-16 h-16 rounded-full bg-gradient-to-br from-[#304b50] to-[#06E481] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-								<span class="text-xl font-bold text-white">
-									{getInitials(starter.full_name)}
-								</span>
+							<div class="flex-shrink-0 group-hover:scale-110 transition-transform">
+								<Avatar name={starter.full_name} size="lg" />
 							</div>
 							<div class="ml-4">
 								<h3 class="font-semibold text-[#304b50] dark:text-white group-hover:text-[#06E481] transition-colors">

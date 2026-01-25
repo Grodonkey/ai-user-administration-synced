@@ -2,7 +2,12 @@
 	import { onMount } from 'svelte';
 	import { t } from '$lib/stores/language';
 	import { listFeaturedProjects, listNearGoalProjects, getSuccessfulStarters } from '$lib/api';
-	import { formatCurrency, calculateProgress, getInitials, getProjectTypeColor } from '$lib/utils';
+	import { formatCurrency, calculateProgress } from '$lib/utils';
+	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import Alert from '$lib/components/Alert.svelte';
+	import Badge from '$lib/components/Badge.svelte';
+	import ProgressBar from '$lib/components/ProgressBar.svelte';
+	import Avatar from '$lib/components/Avatar.svelte';
 
 	let featuredProjects = [];
 	let nearGoalProjects = [];
@@ -51,13 +56,10 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 	{#if loading}
 		<div class="text-center py-12">
-			<div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-[#06E481]"></div>
-			<p class="mt-4 text-gray-600 dark:text-gray-400">{$t('common.loading')}</p>
+			<LoadingSpinner />
 		</div>
 	{:else if error}
-		<div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
-			{error}
-		</div>
+		<Alert type="error" message={error} />
 	{:else}
 		<!-- Featured Projects Section -->
 		<section class="mb-16">
@@ -86,9 +88,7 @@
 										</div>
 									{/if}
 									<div class="absolute top-4 left-4 flex gap-2">
-										<span class="px-3 py-1 rounded-full text-sm font-semibold {getProjectTypeColor(featuredProjects[0].project_type)}">
-											{$t(`project.type.${featuredProjects[0].project_type || 'crowdfunding'}`)}
-										</span>
+										<Badge type="projectType" value={featuredProjects[0].project_type || 'crowdfunding'} />
 									</div>
 								</div>
 								<div class="p-6">
@@ -102,20 +102,12 @@
 									{/if}
 									{#if featuredProjects[0].funding_goal}
 										<div class="mt-4">
-											<div class="flex justify-between text-sm mb-1">
-												<span class="font-semibold text-[#304b50] dark:text-white">
-													{formatCurrency(featuredProjects[0].funding_current)}
-												</span>
-												<span class="text-gray-500 dark:text-gray-400">
-													{calculateProgress(featuredProjects[0].funding_current, featuredProjects[0].funding_goal)}%
-												</span>
-											</div>
-											<div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-												<div
-													class="bg-[#06E481] h-2 rounded-full transition-all"
-													style="width: {calculateProgress(featuredProjects[0].funding_current, featuredProjects[0].funding_goal)}%"
-												></div>
-											</div>
+											<ProgressBar
+												current={featuredProjects[0].funding_current}
+												goal={featuredProjects[0].funding_goal}
+												projectType={featuredProjects[0].project_type}
+												showGoal={false}
+											/>
 										</div>
 									{/if}
 									{#if featuredProjects[0].status === 'financing'}
@@ -292,9 +284,7 @@
 										</div>
 									{/if}
 									<div class="absolute top-2 left-2">
-										<span class="px-2 py-1 rounded-full text-xs font-semibold {getProjectTypeColor(project.project_type)}">
-											{$t(`project.type.${project.project_type || 'crowdfunding'}`)}
-										</span>
+										<Badge type="projectType" value={project.project_type || 'crowdfunding'} />
 									</div>
 									<div class="absolute top-2 right-2">
 										<span class="bg-green-500 text-white font-semibold px-2 py-1 rounded text-xs">
@@ -371,10 +361,8 @@
 				<div class="flex flex-wrap justify-center gap-8">
 					{#each successfulStarters as starter}
 						<a href="/profile/{starter.profile_slug}" class="group text-center">
-							<div class="w-24 h-24 rounded-full bg-gradient-to-br from-[#304b50] to-[#06E481] flex items-center justify-center mb-3 mx-auto group-hover:scale-110 transition-transform shadow-lg">
-								<span class="text-2xl font-bold text-white">
-									{getInitials(starter.full_name)}
-								</span>
+							<div class="mb-3 mx-auto group-hover:scale-110 transition-transform shadow-lg">
+								<Avatar name={starter.full_name} size="xl" />
 							</div>
 							<h3 class="font-semibold text-[#304b50] dark:text-white group-hover:text-[#06E481] transition-colors">
 								{starter.full_name || $t('discover.anonymous')}

@@ -2,13 +2,13 @@
 	import { onMount } from 'svelte';
 	import { t } from '$lib/stores/language';
 	import { listFeaturedProjects } from '$lib/api';
-	import {
-		formatCurrency,
-		calculateProgress,
-		getProjectTypeColorLight as getProjectTypeColor,
-		getProjectTypeButtonClass,
-		getProjectTypeAccentColor
-	} from '$lib/utils';
+	import { getProjectTypeButtonClass } from '$lib/utils';
+	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import Alert from '$lib/components/Alert.svelte';
+	import EmptyState from '$lib/components/EmptyState.svelte';
+	import Badge from '$lib/components/Badge.svelte';
+	import ProgressBar from '$lib/components/ProgressBar.svelte';
+	import Avatar from '$lib/components/Avatar.svelte';
 
 	let projects = [];
 	let loading = true;
@@ -71,25 +71,15 @@
 <div class="h-[calc(100vh-4rem)] bg-black overflow-hidden">
 	{#if loading}
 		<div class="h-full flex items-center justify-center">
-			<div class="text-center">
-				<div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-600 border-t-[#06E481]"></div>
-				<p class="mt-4 text-gray-400">{$t('common.loading')}</p>
-			</div>
+			<LoadingSpinner size="lg" />
 		</div>
 	{:else if error}
 		<div class="h-full flex items-center justify-center px-4">
-			<div class="bg-red-900/50 border border-red-700 text-red-400 px-6 py-4 rounded-lg max-w-md">
-				{error}
-			</div>
+			<Alert type="error" message={error} />
 		</div>
 	{:else if projects.length === 0}
 		<div class="h-full flex items-center justify-center px-4">
-			<div class="text-center text-gray-400">
-				<svg class="mx-auto h-16 w-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-				</svg>
-				<p class="text-xl">{$t('discover.noFeatured')}</p>
-			</div>
+			<EmptyState message={$t('discover.noFeatured')} />
 		</div>
 	{:else}
 		<!-- Feed Container -->
@@ -117,9 +107,7 @@
 
 						<!-- Project Type Badge -->
 						<div class="absolute top-4 left-4">
-							<span class="px-3 py-1 rounded-full text-xs font-semibold {getProjectTypeColor(project.project_type)}">
-								{$t(`project.type.${project.project_type || 'crowdfunding'}`)}
-							</span>
+							<Badge type="projectType" value={project.project_type || 'crowdfunding'} variant="light" />
 						</div>
 
 						<!-- Content Overlay -->
@@ -143,10 +131,8 @@
 										href="/profile/{project.owner.profile_slug}"
 										class="inline-flex items-center text-gray-300 hover:text-[#06E481] transition-colors text-sm mb-4"
 									>
-										<div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#304b50] to-[#06E481] flex items-center justify-center mr-2">
-											<span class="text-xs font-bold text-white">
-												{project.owner.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?'}
-											</span>
+										<div class="mr-2">
+											<Avatar name={project.owner.full_name} size="sm" />
 										</div>
 										{project.owner.full_name || project.owner.email}
 									</a>
@@ -156,19 +142,11 @@
 							<!-- Funding Progress -->
 							{#if project.funding_goal}
 								<div class="mb-4">
-									<div class="flex justify-between text-sm text-white mb-2">
-										<span class="font-semibold">{formatCurrency(project.funding_current)}</span>
-										<span class="font-bold" style="color: {getProjectTypeAccentColor(project.project_type)}">{calculateProgress(project.funding_current, project.funding_goal)}%</span>
-									</div>
-									<div class="w-full bg-white/20 rounded-full h-2">
-										<div
-											class="h-2 rounded-full transition-all"
-											style="width: {calculateProgress(project.funding_current, project.funding_goal)}%; background-color: {getProjectTypeAccentColor(project.project_type)}"
-										></div>
-									</div>
-									<div class="text-xs text-gray-400 mt-1">
-										{$t('project.goal')}: {formatCurrency(project.funding_goal)}
-									</div>
+									<ProgressBar
+										current={project.funding_current}
+										goal={project.funding_goal}
+										projectType={project.project_type}
+									/>
 								</div>
 							{/if}
 

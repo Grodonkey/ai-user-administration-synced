@@ -3,6 +3,10 @@
 	import { t } from '$lib/stores/language';
 	import { listProjects } from '$lib/api';
 	import { formatCurrency, calculateProgress } from '$lib/utils';
+	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import Alert from '$lib/components/Alert.svelte';
+	import EmptyState from '$lib/components/EmptyState.svelte';
+	import ProgressBar from '$lib/components/ProgressBar.svelte';
 
 	let projects = [];
 	let loading = true;
@@ -37,20 +41,12 @@
 
 	{#if loading}
 		<div class="text-center py-12">
-			<div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-[#06E481]"></div>
-			<p class="mt-4 text-gray-600 dark:text-gray-400">{$t('common.loading')}</p>
+			<LoadingSpinner />
 		</div>
 	{:else if error}
-		<div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded">
-			{error}
-		</div>
+		<Alert type="error" message={error} />
 	{:else if projects.length === 0}
-		<div class="text-center py-12 bg-gray-100 dark:bg-gray-800 rounded-lg">
-			<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-			</svg>
-			<p class="mt-4 text-gray-600 dark:text-gray-400">{$t('home.noProjects')}</p>
-		</div>
+		<EmptyState message={$t('home.noProjects')} />
 	{:else}
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 			{#each projects as project}
@@ -82,19 +78,11 @@
 						{/if}
 						{#if project.funding_goal}
 							<div class="mb-2">
-								<div class="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
-									<span>{formatCurrency(project.funding_current)}</span>
-									<span>{calculateProgress(project.funding_current, project.funding_goal)}% {$t('project.funded')}</span>
-								</div>
-								<div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-									<div
-										class="bg-[#06E481] h-2 rounded-full transition-all"
-										style="width: {calculateProgress(project.funding_current, project.funding_goal)}%"
-									></div>
-								</div>
-								<div class="text-sm text-gray-500 dark:text-gray-500 mt-1">
-									{$t('project.goal')}: {formatCurrency(project.funding_goal)}
-								</div>
+								<ProgressBar
+									current={project.funding_current}
+									goal={project.funding_goal}
+									projectType={project.project_type}
+								/>
 							</div>
 						{/if}
 					</div>
