@@ -2,6 +2,7 @@
 	import { page } from '$app/stores';
 	import { t } from '$lib/stores/language';
 	import { getPublicProfile } from '$lib/api';
+	import { formatCurrency, calculateProgress, formatDate, getInitials, getStatusColor } from '$lib/utils';
 
 	let profile = null;
 	let loading = true;
@@ -26,43 +27,6 @@
 			error = e.message;
 		} finally {
 			loading = false;
-		}
-	}
-
-	function formatCurrency(amount) {
-		return new Intl.NumberFormat('de-DE', {
-			style: 'currency',
-			currency: 'EUR',
-			minimumFractionDigits: 0,
-			maximumFractionDigits: 0
-		}).format(amount || 0);
-	}
-
-	function calculateProgress(current, goal) {
-		if (!goal || goal === 0) return 0;
-		return Math.min(100, Math.round((current / goal) * 100));
-	}
-
-	function formatDate(dateStr) {
-		if (!dateStr) return '';
-		return new Date(dateStr).toLocaleDateString('de-DE', {
-			year: 'numeric',
-			month: 'long'
-		});
-	}
-
-	function getInitials(name) {
-		if (!name) return '?';
-		return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-	}
-
-	function getStatusColor(status) {
-		switch (status) {
-			case 'verified': return 'bg-[#06E481]/20 text-[#304b50] dark:bg-[#06E481]/20 dark:text-[#06E481]';
-			case 'financing': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
-			case 'ended_success': return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400';
-			case 'ended_failed': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
-			default: return 'bg-gray-100 text-gray-800';
 		}
 	}
 </script>

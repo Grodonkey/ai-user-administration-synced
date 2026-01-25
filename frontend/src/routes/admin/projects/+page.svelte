@@ -2,6 +2,13 @@
 	import { onMount } from 'svelte';
 	import { adminListProjects, adminUpdateProject, adminDeleteProject } from '$lib/api';
 	import { t, language } from '$lib/stores/language';
+	import {
+		formatCurrency,
+		formatDateShort,
+		getStatusColor,
+		getProjectTypeColor,
+		getSortIcon as baseSortIcon
+	} from '$lib/utils';
 
 	let projects = [];
 	let loading = true;
@@ -14,6 +21,15 @@
 
 	const statuses = ['draft', 'submitted', 'verified', 'financing', 'ended_success', 'ended_failed', 'rejected'];
 	const projectTypes = ['crowdfunding', 'fundraising', 'private'];
+
+	// Locale-aware wrappers
+	$: locale = $language === 'de' ? 'de-DE' : 'en-US';
+	function formatDate(dateString) {
+		return formatDateShort(dateString, locale);
+	}
+	function getSortIconForColumn(column) {
+		return baseSortIcon(column, sortBy, sortDir);
+	}
 
 	onMount(async () => {
 		await loadProjects();
@@ -91,59 +107,6 @@
 			error = err.message;
 		}
 	}
-
-	function formatDate(dateString) {
-		if (!dateString) return '-';
-		return new Date(dateString).toLocaleDateString($language === 'de' ? 'de-DE' : 'en-US');
-	}
-
-	function formatCurrency(amount) {
-		return new Intl.NumberFormat($language === 'de' ? 'de-DE' : 'en-US', {
-			style: 'currency',
-			currency: 'EUR',
-			minimumFractionDigits: 0,
-			maximumFractionDigits: 0
-		}).format(amount || 0);
-	}
-
-	function getStatusColor(status) {
-		switch (status) {
-			case 'draft':
-				return 'bg-gray-100 dark:bg-gray-700 text-[#304b50] dark:text-gray-300';
-			case 'submitted':
-				return 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-400';
-			case 'verified':
-				return 'bg-[#06E481]/20 dark:bg-[#06E481]/20 text-[#304b50] dark:text-[#06E481]';
-			case 'financing':
-				return 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-400';
-			case 'ended_success':
-				return 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-400';
-			case 'ended_failed':
-				return 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-400';
-			case 'rejected':
-				return 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-400';
-			default:
-				return 'bg-gray-100 dark:bg-gray-700 text-[#304b50] dark:text-gray-300';
-		}
-	}
-
-	function getSortIcon(column) {
-		if (sortBy !== column) return '↕';
-		return sortDir === 'asc' ? '↑' : '↓';
-	}
-
-	function getProjectTypeColor(type) {
-		switch (type) {
-			case 'crowdfunding':
-				return 'bg-[#06E481]/20 text-[#304b50] dark:text-[#06E481]';
-			case 'fundraising':
-				return 'bg-[#FF85FF]/20 text-[#FF85FF]';
-			case 'private':
-				return 'bg-[#FFC21C]/20 text-[#FFC21C]';
-			default:
-				return 'bg-gray-100 dark:bg-gray-700 text-[#304b50] dark:text-gray-300';
-		}
-	}
 </script>
 
 <div>
@@ -203,7 +166,7 @@
 								class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
 								on:click={() => toggleSort('title')}
 							>
-								{$t('project.title')} {getSortIcon('title')}
+								{$t('project.title')} {getSortIconForColumn('title')}
 							</th>
 							<th
 								class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
@@ -215,13 +178,13 @@
 								class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
 								on:click={() => toggleSort('project_type')}
 							>
-								{$t('project.type')} {getSortIcon('project_type')}
+								{$t('project.type')} {getSortIconForColumn('project_type')}
 							</th>
 							<th
 								class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
 								on:click={() => toggleSort('status')}
 							>
-								{$t('admin.status')} {getSortIcon('status')}
+								{$t('admin.status')} {getSortIconForColumn('status')}
 							</th>
 							<th
 								class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
@@ -232,7 +195,7 @@
 								class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
 								on:click={() => toggleSort('created_at')}
 							>
-								{$t('project.createdAt')} {getSortIcon('created_at')}
+								{$t('project.createdAt')} {getSortIconForColumn('created_at')}
 							</th>
 							<th
 								class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"

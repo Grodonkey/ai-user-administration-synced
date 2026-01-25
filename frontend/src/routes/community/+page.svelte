@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { t } from '$lib/stores/language';
 	import { getAllStarters } from '$lib/api';
+	import { formatCurrency, getInitials, formatProjectCount } from '$lib/utils';
 
 	let starters = [];
 	let loading = true;
@@ -16,27 +17,6 @@
 			loading = false;
 		}
 	});
-
-	function formatCurrency(amount) {
-		return new Intl.NumberFormat('de-DE', {
-			style: 'currency',
-			currency: 'EUR',
-			minimumFractionDigits: 0,
-			maximumFractionDigits: 0
-		}).format(amount || 0);
-	}
-
-	function getInitials(name) {
-		if (!name) return '?';
-		return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-	}
-
-	function formatProjectCount(count) {
-		if (count === 1) {
-			return $t('community.projectCount').split('|')[0].trim().replace('{count}', count);
-		}
-		return $t('community.projectCount').split('|')[1]?.trim().replace('{count}', count) || `${count} Projekte`;
-	}
 </script>
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -95,7 +75,7 @@
 						<div class="border-t border-gray-200 dark:border-gray-700 pt-4">
 							<div class="flex justify-between text-sm">
 								<span class="text-gray-500 dark:text-gray-400">
-									{formatProjectCount(starter.project_count)}
+									{formatProjectCount(starter.project_count, $t)}
 								</span>
 								{#if starter.total_funding_raised > 0}
 									<span class="text-[#06E481] font-medium">

@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { t } from '$lib/stores/language';
 	import { listFeaturedProjects, listNearGoalProjects, getSuccessfulStarters } from '$lib/api';
+	import { formatCurrency, calculateProgress, getInitials, getProjectTypeColor } from '$lib/utils';
 
 	let featuredProjects = [];
 	let nearGoalProjects = [];
@@ -31,20 +32,6 @@
 		}
 	});
 
-	function formatCurrency(amount) {
-		return new Intl.NumberFormat('de-DE', {
-			style: 'currency',
-			currency: 'EUR',
-			minimumFractionDigits: 0,
-			maximumFractionDigits: 0
-		}).format(amount || 0);
-	}
-
-	function calculateProgress(current, goal) {
-		if (!goal || goal === 0) return 0;
-		return Math.min(100, Math.round((current / goal) * 100));
-	}
-
 	function scrollSlider(direction) {
 		if (!sliderContainer) return;
 		const scrollAmount = 320;
@@ -58,20 +45,6 @@
 		if (!sliderContainer) return;
 		canScrollLeft = sliderContainer.scrollLeft > 0;
 		canScrollRight = sliderContainer.scrollLeft < sliderContainer.scrollWidth - sliderContainer.clientWidth - 10;
-	}
-
-	function getInitials(name) {
-		if (!name) return '?';
-		return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-	}
-
-	function getProjectTypeColor(type) {
-		switch (type) {
-			case 'crowdfunding': return 'bg-[#06E481]/20 text-[#304b50] dark:text-[#06E481]';
-			case 'fundraising': return 'bg-[#FF85FF]/20 text-[#FF85FF]';
-			case 'private': return 'bg-[#FFC21C]/20 text-[#FFC21C]';
-			default: return 'bg-gray-100 text-gray-800';
-		}
 	}
 </script>
 

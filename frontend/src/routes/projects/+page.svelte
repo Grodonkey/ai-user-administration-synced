@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { t } from '$lib/stores/language';
 	import { listProjects } from '$lib/api';
+	import { formatCurrency, calculateProgress } from '$lib/utils';
 
 	let projects = [];
 	let loading = true;
@@ -16,20 +17,6 @@
 			loading = false;
 		}
 	});
-
-	function formatCurrency(amount) {
-		return new Intl.NumberFormat('de-DE', {
-			style: 'currency',
-			currency: 'EUR',
-			minimumFractionDigits: 0,
-			maximumFractionDigits: 0
-		}).format(amount || 0);
-	}
-
-	function calculateProgress(current, goal) {
-		if (!goal || goal === 0) return 0;
-		return Math.min(100, Math.round((current / goal) * 100));
-	}
 </script>
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

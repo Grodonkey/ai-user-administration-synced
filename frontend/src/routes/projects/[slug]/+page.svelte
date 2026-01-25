@@ -4,6 +4,7 @@
 	import { t } from '$lib/stores/language';
 	import { auth } from '$lib/stores/auth';
 	import { getProject, updateProject, deleteProject, submitProject, duplicateProject } from '$lib/api';
+	import { formatCurrency, calculateProgress, formatDate, getStatusColor, getProjectTypeColor } from '$lib/utils';
 
 	let project = null;
 	let loading = true;
@@ -198,48 +199,9 @@
 		}
 	}
 
-	function formatCurrency(amount) {
-		return new Intl.NumberFormat('de-DE', {
-			style: 'currency',
-			currency: 'EUR',
-			minimumFractionDigits: 0,
-			maximumFractionDigits: 0
-		}).format(amount || 0);
-	}
-
-	function calculateProgress(current, goal) {
-		if (!goal || goal === 0) return 0;
-		return Math.min(100, Math.round((current / goal) * 100));
-	}
-
-	function formatDate(dateStr) {
-		if (!dateStr) return '';
-		return new Date(dateStr).toLocaleDateString('de-DE', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric'
-		});
-	}
-
-	function getStatusColor(status) {
-		switch (status) {
-			case 'draft': return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
-			case 'submitted': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
-			case 'verified': return 'bg-[#06E481]/20 text-[#304b50] dark:bg-[#06E481]/20 dark:text-[#06E481]';
-			case 'financing': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
-			case 'ended_success': return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400';
-			case 'ended_failed': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
-			default: return 'bg-gray-100 text-gray-800';
-		}
-	}
-
-	function getProjectTypeColor(type) {
-		switch (type) {
-			case 'crowdfunding': return 'bg-[#06E481]/20 text-[#304b50] dark:text-[#06E481]';
-			case 'fundraising': return 'bg-[#FF85FF]/20 text-[#FF85FF]';
-			case 'private': return 'bg-[#FFC21C]/20 text-[#FFC21C]';
-			default: return 'bg-gray-100 text-gray-800';
-		}
+	// Local wrapper for formatDate with day included (used in project detail)
+	function formatProjectDate(dateStr) {
+		return formatDate(dateStr, { includeDay: true });
 	}
 
 	function handleKeydown(event, field) {
@@ -591,7 +553,7 @@
 						</a>
 					{/if}
 					<span class="mx-2">•</span>
-					{formatDate(project.created_at)}
+					{formatProjectDate(project.created_at)}
 				</div>
 
 				<!-- Funding Goal -->

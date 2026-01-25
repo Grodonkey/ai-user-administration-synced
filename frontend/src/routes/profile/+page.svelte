@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { getCurrentUser, updateProfile, setup2FA, verify2FA, disable2FA, isAuthenticated, listMyProjects, logout } from '$lib/api';
 	import { t } from '$lib/stores/language';
+	import { getStatusColor } from '$lib/utils';
 
 	let user = null;
 	let loading = true;
@@ -49,18 +50,6 @@
 			projectsLoading = false;
 		}
 	});
-
-	function getStatusColor(status) {
-		switch (status) {
-			case 'draft': return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
-			case 'submitted': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
-			case 'verified': return 'bg-[#06E481]/20 text-[#304b50] dark:bg-[#06E481]/20 dark:text-[#06E481]';
-			case 'financing': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
-			case 'ended_success': return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400';
-			case 'ended_failed': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
-			default: return 'bg-gray-100 text-gray-800';
-		}
-	}
 
 	async function handleLogout() {
 		try {

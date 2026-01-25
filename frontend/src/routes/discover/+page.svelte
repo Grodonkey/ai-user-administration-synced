@@ -2,6 +2,13 @@
 	import { onMount } from 'svelte';
 	import { t } from '$lib/stores/language';
 	import { listFeaturedProjects } from '$lib/api';
+	import {
+		formatCurrency,
+		calculateProgress,
+		getProjectTypeColorLight as getProjectTypeColor,
+		getProjectTypeButtonClass,
+		getProjectTypeAccentColor
+	} from '$lib/utils';
 
 	let projects = [];
 	let loading = true;
@@ -19,47 +26,6 @@
 			loading = false;
 		}
 	});
-
-	function formatCurrency(amount) {
-		return new Intl.NumberFormat('de-DE', {
-			style: 'currency',
-			currency: 'EUR',
-			minimumFractionDigits: 0,
-			maximumFractionDigits: 0
-		}).format(amount || 0);
-	}
-
-	function calculateProgress(current, goal) {
-		if (!goal || goal === 0) return 0;
-		return Math.min(100, Math.round((current / goal) * 100));
-	}
-
-	function getProjectTypeColor(type) {
-		switch (type) {
-			case 'crowdfunding': return 'bg-[#06E481]/30 text-[#06E481]';
-			case 'fundraising': return 'bg-[#FF85FF]/30 text-[#FF85FF]';
-			case 'private': return 'bg-[#FFC21C]/30 text-[#FFC21C]';
-			default: return 'bg-gray-100/30 text-white';
-		}
-	}
-
-	function getProjectTypeButtonClass(type) {
-		switch (type) {
-			case 'crowdfunding': return 'bg-[#06E481] text-[#304b50] hover:bg-[#05b667]';
-			case 'fundraising': return 'bg-[#FF85FF] text-white hover:bg-[#e070e0]';
-			case 'private': return 'bg-[#FFC21C] text-[#304b50] hover:bg-[#e0aa18]';
-			default: return 'bg-[#06E481] text-[#304b50] hover:bg-[#05b667]';
-		}
-	}
-
-	function getProjectTypeAccentColor(type) {
-		switch (type) {
-			case 'crowdfunding': return '#06E481';
-			case 'fundraising': return '#FF85FF';
-			case 'private': return '#FFC21C';
-			default: return '#06E481';
-		}
-	}
 
 	function handleScroll() {
 		if (!feedContainer) return;
