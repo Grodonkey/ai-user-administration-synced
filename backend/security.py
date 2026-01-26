@@ -41,6 +41,11 @@ def create_reset_token() -> str:
     return secrets.token_urlsafe(32)
 
 
+def create_verification_code() -> str:
+    """Generate a 6-digit verification code."""
+    return ''.join([str(secrets.randbelow(10)) for _ in range(6)])
+
+
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)

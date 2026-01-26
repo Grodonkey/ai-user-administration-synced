@@ -59,8 +59,9 @@ def send_password_reset_email(email: str, reset_token: str, user_name: str = Non
         return False
 
 
-def send_magic_link_email(email: str, magic_token: str, user_name: str = None):
-    magic_url = f"{settings.FRONTEND_URL}/auth/magic-link?token={magic_token}"
+def send_magic_link_email(email: str, verification_code: str, user_name: str = None):
+    # Format code with spaces for better readability (123 456)
+    formatted_code = f"{verification_code[:3]} {verification_code[3:]}"
 
     html_content = f"""
     <!DOCTYPE html>
@@ -69,28 +70,34 @@ def send_magic_link_email(email: str, magic_token: str, user_name: str = None):
         <style>
             body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
             .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-            .button {{
-                display: inline-block;
-                padding: 12px 24px;
-                background-color: #007bff;
-                color: white;
-                text-decoration: none;
-                border-radius: 4px;
+            .code-box {{
+                background-color: #f4f4f4;
+                border: 2px dashed #007bff;
+                border-radius: 8px;
+                padding: 20px;
+                text-align: center;
                 margin: 20px 0;
+            }}
+            .code {{
+                font-size: 32px;
+                font-weight: bold;
+                letter-spacing: 8px;
+                color: #007bff;
+                font-family: 'Courier New', monospace;
             }}
             .footer {{ margin-top: 30px; font-size: 12px; color: #666; }}
         </style>
     </head>
     <body>
         <div class="container">
-            <h2>Login-Link</h2>
+            <h2>Dein Bestätigungscode</h2>
             <p>Hallo{f" {user_name}" if user_name else ""},</p>
-            <p>Klicke auf den folgenden Button, um dich einzuloggen:</p>
-            <a href="{magic_url}" class="button">Jetzt einloggen</a>
-            <p>Oder kopiere diesen Link in deinen Browser:</p>
-            <p style="word-break: break-all;">{magic_url}</p>
-            <p>Dieser Link ist 15 Minuten lang gültig.</p>
-            <p>Wenn du diesen Link nicht angefordert hast, kannst du diese E-Mail ignorieren.</p>
+            <p>Gib den folgenden Code ein, um dich einzuloggen:</p>
+            <div class="code-box">
+                <span class="code">{formatted_code}</span>
+            </div>
+            <p>Dieser Code ist 15 Minuten lang gültig.</p>
+            <p>Wenn du diesen Code nicht angefordert hast, kannst du diese E-Mail ignorieren.</p>
             <div class="footer">
                 <p>Diese E-Mail wurde automatisch generiert. Bitte antworte nicht darauf.</p>
             </div>
@@ -103,7 +110,7 @@ def send_magic_link_email(email: str, magic_token: str, user_name: str = None):
         params = {
             "from": settings.FROM_EMAIL,
             "to": [email],
-            "subject": "Dein Login-Link",
+            "subject": f"Dein Login-Code: {formatted_code}",
             "html": html_content,
         }
         resend.Emails.send(params)

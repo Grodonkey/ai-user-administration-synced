@@ -11,6 +11,7 @@ from security import (
     create_access_token,
     create_session_token,
     create_reset_token,
+    create_verification_code,
     get_current_user,
     validate_session
 )
@@ -234,49 +235,52 @@ def password_reset_confirm(
     return {"message": "Password has been reset successfully"}
 
 
-# Magic Link endpoints
+# Magic Code endpoints (passwordless login with 6-digit code)
 @router.post("/magic-link/request", response_model=schemas.MessageResponse)
-def request_magic_link(
+def request_magic_code(
     request_data: schemas.MagicLinkRequest,
     db: Session = Depends(get_db)
 ):
-    """Request a magic link for passwordless login"""
+    """Request a 6-digit verification code for passwordless login"""
     user = db.query(models.User).filter(models.User.email == request_data.email).first()
 
     if user and user.is_active:
-        magic_token = create_reset_token()  # Reuse token generation
-        user.magic_link_token = magic_token
+        verification_code = create_verification_code()
+        user.magic_link_token = verification_code
         user.magic_link_expires = datetime.utcnow() + timedelta(minutes=15)
         db.commit()
 
-        send_magic_link_email(user.email, magic_token, user.full_name)
+        send_magic_link_email(user.email, verification_code, user.full_name)
 
     # Always return success to prevent email enumeration
-    return {"message": "Wenn die E-Mail existiert, wurde ein Login-Link gesendet"}
+    return {"message": "Wenn die E-Mail existiert, wurde ein Bestätigungscode gesendet"}
 
 
 @router.post("/magic-link/verify", response_model=schemas.LoginResponse)
-def verify_magic_link(
+def verify_magic_code(
     verify_data: schemas.MagicLinkVerify,
     request: Request,
     db: Session = Depends(get_db)
 ):
-    """Verify magic link token and login user"""
+    """Verify 6-digit code and login user"""
+    # Normalize the code (remove spaces, dashes)
+    code = verify_data.token.replace(" ", "").replace("-", "")
+
     user = db.query(models.User).filter(
-        models.User.magic_link_token == verify_data.token,
+        models.User.magic_link_token == code,
         models.User.magic_link_expires > datetime.utcnow()
     ).first()
 
     if not user:
         raise HTTPException(
             status_code=400,
-            detail="Ungültiger oder abgelaufener Login-Link"
+            detail="Ungültiger oder abgelaufener Code"
         )
 
     if not user.is_active:
         raise HTTPException(status_code=400, detail="Account ist deaktiviert")
 
-    # Clear the magic link token
+    # Clear the verification code
     user.magic_link_token = None
     user.magic_link_expires = None
 

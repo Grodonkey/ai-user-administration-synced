@@ -1,7 +1,7 @@
 <script>
 	import { createEventDispatcher } from 'svelte';
 	import { t } from '$lib/stores/language';
-	import { login, register, requestMagicLink } from '$lib/api';
+	import { login, register, requestMagicLink, verifyMagicLink } from '$lib/api';
 
 	export let mode = 'magic'; // 'magic', 'login', 'register'
 	export let showModeSwitch = true; // Show tabs to switch between modes
@@ -19,6 +19,12 @@
 	let needs2FA = false;
 	let loading = false;
 
+	// Magic code verification state
+	let awaitingCode = false;
+	let verificationCode = '';
+	let codeInputs = ['', '', '', '', '', ''];
+	let codeInputRefs = [];
+
 	function clearMessages() {
 		error = '';
 		success = '';
@@ -28,7 +34,89 @@
 		mode = newMode;
 		clearMessages();
 		needs2FA = false;
+		awaitingCode = false;
+		verificationCode = '';
+		codeInputs = ['', '', '', '', '', ''];
 		dispatch('modechange', { mode: newMode });
+	}
+
+	function handleCodeInput(index, event) {
+		const value = event.target.value.replace(/\D/g, '');
+		codeInputs[index] = value.slice(-1); // Only keep last digit
+
+		// Auto-advance to next input
+		if (value && index < 5) {
+			codeInputRefs[index + 1]?.focus();
+		}
+
+		// Combine all inputs
+		verificationCode = codeInputs.join('');
+
+		// Auto-submit when all 6 digits are entered
+		if (verificationCode.length === 6) {
+			handleVerifyCode();
+		}
+	}
+
+	function handleCodeKeydown(index, event) {
+		// Handle backspace - go to previous input
+		if (event.key === 'Backspace' && !codeInputs[index] && index > 0) {
+			codeInputRefs[index - 1]?.focus();
+		}
+	}
+
+	function handleCodePaste(event) {
+		event.preventDefault();
+		const pastedData = event.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+
+		for (let i = 0; i < 6; i++) {
+			codeInputs[i] = pastedData[i] || '';
+		}
+
+		verificationCode = codeInputs.join('');
+
+		// Focus last filled input or first empty
+		const nextEmptyIndex = codeInputs.findIndex((c) => !c);
+		if (nextEmptyIndex >= 0) {
+			codeInputRefs[nextEmptyIndex]?.focus();
+		} else {
+			codeInputRefs[5]?.focus();
+		}
+
+		// Auto-submit if complete
+		if (verificationCode.length === 6) {
+			handleVerifyCode();
+		}
+	}
+
+	async function handleVerifyCode() {
+		if (verificationCode.length !== 6) {
+			error = 'Bitte gib den 6-stelligen Code ein';
+			return;
+		}
+
+		clearMessages();
+		loading = true;
+
+		try {
+			await verifyMagicLink(verificationCode);
+			dispatch('loginsuccess', { email });
+		} catch (err) {
+			error = err.message;
+			// Clear the code inputs on error
+			codeInputs = ['', '', '', '', '', ''];
+			verificationCode = '';
+			codeInputRefs[0]?.focus();
+		} finally {
+			loading = false;
+		}
+	}
+
+	function goBackToEmail() {
+		awaitingCode = false;
+		verificationCode = '';
+		codeInputs = ['', '', '', '', '', ''];
+		clearMessages();
 	}
 
 	async function handleMagicLink() {
@@ -38,8 +126,11 @@
 		try {
 			dispatch('beforemagiclink');
 			await requestMagicLink(email);
+			awaitingCode = true;
 			success = $t('login.magicLinkSent');
 			dispatch('magiclinksent', { email });
+			// Focus first code input after a short delay
+			setTimeout(() => codeInputRefs[0]?.focus(), 100);
 		} catch (err) {
 			error = err.message;
 		} finally {
@@ -145,32 +236,92 @@
 
 	<!-- Magic Link Form -->
 	{#if mode === 'magic'}
-		<form on:submit|preventDefault={handleSubmit}>
-			<div class="mb-4">
-				<label for="email" class="block text-gray-700 dark:text-gray-300 font-medium mb-2">
-					{$t('login.email')}
-				</label>
-				<input
-					type="email"
-					id="email"
-					bind:value={email}
-					required
-					class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-[#06E481] bg-white dark:bg-gray-700 text-[#304b50] dark:text-white"
-				/>
+		{#if awaitingCode}
+			<!-- Code Verification Step -->
+			<div class="text-center">
+				<p class="text-gray-700 dark:text-gray-300 mb-2">
+					Code gesendet an:
+				</p>
+				<p class="font-semibold text-[#304b50] dark:text-white mb-6">
+					{email}
+				</p>
+
+				<p class="text-gray-600 dark:text-gray-400 mb-4 text-sm">
+					Gib den 6-stelligen Code aus der E-Mail ein:
+				</p>
+
+				<!-- 6-digit code input -->
+				<div class="flex justify-center gap-2 mb-6" on:paste={handleCodePaste}>
+					{#each codeInputs as digit, i}
+						<input
+							type="text"
+							inputmode="numeric"
+							maxlength="1"
+							bind:value={codeInputs[i]}
+							bind:this={codeInputRefs[i]}
+							on:input={(e) => handleCodeInput(i, e)}
+							on:keydown={(e) => handleCodeKeydown(i, e)}
+							class="w-12 h-14 text-center text-2xl font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-[#06E481] focus:ring-2 focus:ring-[#06E481] bg-white dark:bg-gray-700 text-[#304b50] dark:text-white"
+						/>
+					{/each}
+				</div>
+
+				<button
+					type="button"
+					on:click={handleVerifyCode}
+					disabled={loading || verificationCode.length !== 6}
+					class="w-full bg-[#06E481] text-[#304b50] font-semibold py-2 px-4 rounded-md hover:bg-[#05b667] disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors mb-4"
+				>
+					{loading ? 'Wird überprüft...' : 'Bestätigen'}
+				</button>
+
+				<div class="flex justify-between text-sm">
+					<button
+						type="button"
+						on:click={goBackToEmail}
+						class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+					>
+						&larr; Andere E-Mail
+					</button>
+					<button
+						type="button"
+						on:click={handleMagicLink}
+						disabled={loading}
+						class="text-[#06E481] hover:underline disabled:opacity-50"
+					>
+						Code erneut senden
+					</button>
+				</div>
 			</div>
+		{:else}
+			<!-- Email Input Step -->
+			<form on:submit|preventDefault={handleSubmit}>
+				<div class="mb-4">
+					<label for="email" class="block text-gray-700 dark:text-gray-300 font-medium mb-2">
+						{$t('login.email')}
+					</label>
+					<input
+						type="email"
+						id="email"
+						bind:value={email}
+						required
+						class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-[#06E481] bg-white dark:bg-gray-700 text-[#304b50] dark:text-white"
+					/>
+				</div>
 
-			<button
-				type="submit"
-				disabled={loading}
-				class="w-full bg-[#06E481] text-[#304b50] font-semibold py-2 px-4 rounded-md hover:bg-[#05b667] disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-			>
-				{loading ? $t('login.sendingLink') : $t('login.sendLink')}
-			</button>
-		</form>
+				<button
+					type="submit"
+					disabled={loading}
+					class="w-full bg-[#06E481] text-[#304b50] font-semibold py-2 px-4 rounded-md hover:bg-[#05b667] disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+				>
+					{loading ? $t('login.sendingLink') : $t('login.sendLink')}
+				</button>
+			</form>
 
-		<p class="mt-4 text-sm text-gray-600 dark:text-gray-400 text-center">
-			{$t('login.magicLinkInfo')}
-		</p>
+			<p class="mt-4 text-sm text-gray-600 dark:text-gray-400 text-center">
+				{$t('login.magicLinkInfo')}
+			</p>
+		{/if}
 	{/if}
 
 	<!-- Login Form -->
