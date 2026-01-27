@@ -14,6 +14,7 @@
 	let convertingProject = false;
 	let draftError = null;
 	let savingField = null;
+	let showMobilePreview = false;
 
 	// Edit values for draft fields
 	let editValues = {};
@@ -245,9 +246,9 @@
 
 <div class="flex h-[calc(100vh-4rem)]">
 	<!-- Left: Chat Area -->
-	<div class="w-1/2 flex flex-col bg-gray-50 dark:bg-gray-900 min-w-0">
+	<div class="w-full lg:w-1/2 flex flex-col bg-gray-50 dark:bg-gray-900 min-w-0">
 		<!-- Chat Header -->
-		<div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 h-16 flex items-center flex-shrink-0">
+		<div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 h-16 flex items-center justify-between flex-shrink-0">
 			<div class="flex items-center gap-3">
 				<a href="/vibe" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
 					<svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -261,6 +262,16 @@
 					</p>
 				</div>
 			</div>
+			<!-- Mobile Preview Toggle Button -->
+			<button
+				on:click={() => showMobilePreview = true}
+				class="lg:hidden flex items-center gap-2 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+			>
+				<svg class="w-5 h-5 text-[#06E481]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+				</svg>
+				<span class="text-sm font-medium text-gray-700 dark:text-gray-300">{$t('vibe.preview.toDraft')}</span>
+			</button>
 		</div>
 
 		<!-- Messages -->
@@ -330,9 +341,8 @@
 							bind:value={prompt}
 							on:keydown={handleKeydown}
 							placeholder={requiresLogin && !$auth.isAuthenticated ? $t('vibe.chat.loginToContine') : $t('vibe.chat.inputPlaceholder')}
-							rows="2"
 							disabled={loading || (requiresLogin && !$auth.isAuthenticated)}
-							class="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-[#06E481] focus:border-transparent resize-none dark:bg-gray-700 dark:text-white disabled:opacity-50"
+							class="w-full h-[68px] px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-[#06E481] focus:border-transparent resize-none dark:bg-gray-700 dark:text-white disabled:opacity-50"
 						></textarea>
 					</div>
 					<button
@@ -350,7 +360,12 @@
 	</div>
 
 	<!-- Right: Project Preview Panel -->
-	<div class="w-1/2 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 flex flex-col flex-shrink-0 hidden lg:flex">
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div
+		class="fixed inset-0 z-50 lg:relative lg:inset-auto lg:z-auto w-full lg:w-1/2 bg-white dark:bg-gray-800 lg:border-l border-gray-200 dark:border-gray-700 flex flex-col flex-shrink-0 {showMobilePreview ? 'flex' : 'hidden'} lg:flex"
+		on:click|self={() => showMobilePreview = false}
+	>
 		<!-- Panel Header -->
 		<div class="px-6 h-16 flex items-center justify-between border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
 			<h2 class="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
@@ -359,26 +374,15 @@
 				</svg>
 				{$t('vibe.preview.title')}
 			</h2>
-			<!-- Regenerate Button (only when draft exists) -->
-			{#if draft}
-				<button
-					on:click={handleGenerateDraft}
-					disabled={generatingDraft}
-					class="flex items-center gap-2 px-3 py-1.5 rounded-full border-2 border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-[#06E481] hover:text-[#06E481] hover:bg-[#06E481]/10 disabled:opacity-50 transition-all text-sm"
-				>
-					{#if generatingDraft}
-						<svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-							<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-							<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-						</svg>
-					{:else}
-						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-						</svg>
-					{/if}
-					{$t('vibe.preview.refresh')}
-				</button>
-			{/if}
+			<!-- Mobile Close Button -->
+			<button
+				on:click={() => showMobilePreview = false}
+				class="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+			>
+				<svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+				</svg>
+			</button>
 		</div>
 
 		<div class="flex-1 overflow-y-auto">
@@ -676,26 +680,48 @@
 			{/if}
 		</div>
 
-		<!-- Publish Button (sticky footer when draft exists) - aligned with chat input -->
+		<!-- Action Buttons (sticky footer when draft exists) - aligned with chat input -->
 		{#if draft}
-			<div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
-				<button
-					on:click={handleConvertProject}
-					disabled={convertingProject || !draft.title}
-					class="w-full px-4 py-3 bg-[#06E481] hover:bg-[#05c96e] disabled:bg-gray-300 dark:disabled:bg-gray-600 text-[#304b50] font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
-				>
-					{#if convertingProject}
-						<svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-							<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-							<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-						</svg>
-					{:else}
-						<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-						</svg>
-					{/if}
-					{$t('vibe.preview.publishProject')}
-				</button>
+			<div class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-6 py-4 flex-shrink-0">
+				<div class="flex items-center gap-3">
+					<!-- Refresh Preview Button (Secondary) -->
+					<button
+						on:click={handleGenerateDraft}
+						disabled={generatingDraft}
+						class="flex-1 h-[50px] px-4 border-2 border-gray-200 dark:border-gray-600 hover:border-[#06E481] hover:text-[#06E481] disabled:opacity-50 text-gray-600 dark:text-gray-400 font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+					>
+						{#if generatingDraft}
+							<svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+								<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+							</svg>
+						{:else}
+							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+							</svg>
+						{/if}
+						{$t('vibe.preview.refresh')}
+					</button>
+
+					<!-- Publish Button (Primary) -->
+					<button
+						on:click={handleConvertProject}
+						disabled={convertingProject || !draft.title}
+						class="flex-1 h-[50px] px-4 bg-[#06E481] hover:bg-[#05c96e] disabled:bg-gray-300 dark:disabled:bg-gray-600 text-[#304b50] font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
+					>
+						{#if convertingProject}
+							<svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+								<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+							</svg>
+						{:else}
+							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+							</svg>
+						{/if}
+						{$t('vibe.preview.adoptDraft')}
+					</button>
+				</div>
 				<p class="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">
 					{$t('vibe.draft.canEditLater')}
 				</p>

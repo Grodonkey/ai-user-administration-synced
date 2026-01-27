@@ -396,6 +396,8 @@ export const translations = {
 		'vibe.preview.regenerate': 'Neu generieren',
 		'vibe.preview.refresh': 'Vorschau aktualisieren',
 		'vibe.preview.publishProject': 'Projektentwurf veröffentlichen',
+		'vibe.preview.adoptDraft': 'Entwurf übernehmen',
+		'vibe.preview.toDraft': 'zum Entwurf',
 
 		// AI Coach Errors
 		'vibe.error.messageLimitReached': 'Nachrichtenlimit erreicht. Bitte melde dich an, um fortzufahren.',
@@ -798,6 +800,8 @@ export const translations = {
 		'vibe.preview.regenerate': 'Regenerate',
 		'vibe.preview.refresh': 'Refresh preview',
 		'vibe.preview.publishProject': 'Publish project draft',
+		'vibe.preview.adoptDraft': 'Adopt draft',
+		'vibe.preview.toDraft': 'to draft',
 
 		// AI Coach Errors
 		'vibe.error.messageLimitReached': 'Message limit reached. Please log in to continue.',
