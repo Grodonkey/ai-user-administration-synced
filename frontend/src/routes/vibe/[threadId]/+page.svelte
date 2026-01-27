@@ -274,16 +274,16 @@
 						<div
 							class="max-w-[85%] rounded-2xl px-4 py-3 {message.isAssistant
 								? 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700'
-								: 'bg-[#06E481] text-white'}"
+								: 'bg-[#06E481] text-[#1a2a2e]'}"
 						>
 							{#if message.htmlContent}
-								<div class="prose dark:prose-invert prose-sm max-w-none">
+								<div class="ai-message-content prose prose-sm max-w-none">
 									{@html message.htmlContent}
 								</div>
 							{:else}
-								<p class="whitespace-pre-wrap">{message.content}</p>
+								<p class="whitespace-pre-wrap {message.isAssistant ? 'text-gray-800 dark:text-gray-200' : ''}">{message.content}</p>
 							{/if}
-							<p class="text-xs mt-2 {message.isAssistant ? 'text-gray-400' : 'text-white/70'}">
+							<p class="text-xs mt-2 {message.isAssistant ? 'text-gray-400' : 'text-[#1a2a2e]/60'}">
 								{formatTime(message.createdAt)}
 							</p>
 						</div>
@@ -703,3 +703,58 @@
 		{/if}
 	</div>
 </div>
+
+<style>
+	/* AI message content - explicit dark mode styles */
+	.ai-message-content :global(p),
+	.ai-message-content :global(li),
+	.ai-message-content :global(span) {
+		color: #1f2937;
+	}
+
+	:global(.dark) .ai-message-content :global(p),
+	:global(.dark) .ai-message-content :global(li),
+	:global(.dark) .ai-message-content :global(span) {
+		color: #e5e7eb;
+	}
+
+	.ai-message-content :global(strong),
+	.ai-message-content :global(b) {
+		color: #111827;
+	}
+
+	:global(.dark) .ai-message-content :global(strong),
+	:global(.dark) .ai-message-content :global(b) {
+		color: #ffffff;
+	}
+
+	.ai-message-content :global(h1),
+	.ai-message-content :global(h2),
+	.ai-message-content :global(h3),
+	.ai-message-content :global(h4) {
+		color: #111827;
+	}
+
+	:global(.dark) .ai-message-content :global(h1),
+	:global(.dark) .ai-message-content :global(h2),
+	:global(.dark) .ai-message-content :global(h3),
+	:global(.dark) .ai-message-content :global(h4) {
+		color: #ffffff;
+	}
+
+	.ai-message-content :global(a) {
+		color: #06E481;
+	}
+
+	.ai-message-content :global(code) {
+		background-color: #f3f4f6;
+		color: #1f2937;
+		padding: 0.125rem 0.25rem;
+		border-radius: 0.25rem;
+	}
+
+	:global(.dark) .ai-message-content :global(code) {
+		background-color: #374151;
+		color: #e5e7eb;
+	}
+</style>
