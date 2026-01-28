@@ -18,7 +18,7 @@ export const translations = {
 		'nav.startProject': 'Projekt starten',
 		'nav.discover': 'Entdecken',
 		'nav.community': 'Community',
-		'nav.vibe': 'KI-Vibe',
+		'nav.vibe': 'Projekt viben',
 
 		// Login
 		'login.title': 'Login',
@@ -432,10 +432,10 @@ export const translations = {
 		'nav.logout': 'Logout',
 		'nav.login': 'Login',
 		'nav.register': 'Register',
-		'nav.startProject': 'Start a Project',
+		'nav.startProject': 'Start Project',
 		'nav.discover': 'Discover',
 		'nav.community': 'Community',
-		'nav.vibe': 'AI Vibe',
+		'nav.vibe': 'Vibe Project',
 
 		// Login
 		'login.title': 'Login',
